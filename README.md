@@ -10,7 +10,7 @@ O objetivo do projeto é simular o fluxo de atendimento de um pronto socorro, ut
 ## 👥 Equipe
 * **Enzo Trulenque Evangelista** - NUSP: 
 * **João Pedro Neves** - NUSP: 14713404
-* **Juan Pablo Tomba** - NUSP:
+* **Juan Pablo Tomba** - NUSP: 15638548
 
 ## 📜 Sobre o Projeto
 
