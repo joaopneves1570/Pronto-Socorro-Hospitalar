@@ -14,14 +14,25 @@ PACIENTE* paciente_criar(char nome[], int id, bool registrado){
     if (p != NULL){
         p->nome = (char*)malloc(sizeof(char)*(strlen(nome) + 1));
 
-        if (p->nome != NULL){
-            strcpy(p->nome, nome);
-            p->id = id;
-            p->registrado = registrado;
-            p->hist = historico_criar();
-            return p;
-        } 
+        if (p->nome == NULL){
+            free(p);
+            return NULL;
+        }
+        
+        strcpy(p->nome, nome);
+        p->id = id;
+        p->registrado = registrado;
+        p->hist = historico_criar();
+
+        if (p->hist == NULL){
+            free(p->nome);
+            free(p);
+            return NULL;
+        }
+
+        return p;
     }
+
     free(p);
     return NULL;
 }

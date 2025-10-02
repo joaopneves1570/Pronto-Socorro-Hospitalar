@@ -21,6 +21,7 @@ LISTA* lista_criar(){
             lista->inicio = cabeca;
             lista->inicio->prox = lista->inicio;
             lista->inicio->ant = lista->inicio;
+            lista->tamanho = 0;
             return lista;
         } 
     }
@@ -31,13 +32,13 @@ LISTA* lista_criar(){
 bool lista_inserir(LISTA* lista, PACIENTE* p){
     if (lista != NULL && !lista_cheia(lista)){
         NO* novo = (NO*)malloc(sizeof(NO));
-        HISTORICO* novo_historico = historico_criar();
-        if ((novo != NULL) && (novo_historico != NULL)){
+        if (novo != NULL){
             novo->pac = p;
             novo->prox = lista->inicio;
             novo->ant = novo->prox->ant;
             novo->ant->prox = novo;
             novo->prox->ant = novo;
+            lista->tamanho++;
             return true;
         }
     }
@@ -48,16 +49,18 @@ bool lista_remover(LISTA* lista, PACIENTE* pac){
     if ((lista != NULL) && (!lista_vazia(lista))){
         NO* aux = lista->inicio->prox;
         while (aux != lista->inicio){
-            if (aux == pac) break;
+            if (aux->pac == pac) break;
             aux = aux->prox;
         }
 
-        if (aux == pac){
+        if (aux != lista->inicio){
             paciente_registrar_obito(&(aux->pac));
             aux->ant->prox = aux->prox;
             aux->prox->ant = aux->ant;
             aux->ant = NULL;
             aux->prox = NULL;
+            free(aux); aux = NULL;
+            lista->tamanho--;
             return true;
         }
     }
@@ -67,16 +70,18 @@ bool lista_remover(LISTA* lista, PACIENTE* pac){
 
 bool lista_vazia(LISTA* l){
     if (l != NULL)
-        return l->inicio->prox == NULL;
+        return l->inicio->prox == l->inicio;
     return false;
 }
 
 bool lista_cheia(LISTA* l){
     if (l != NULL){
         NO* teste = (NO*)malloc(sizeof(NO));
-        if (teste == NULL){
+        if (teste != NULL){
             free(teste);
             teste = NULL;
+            return false;
+        } else {
             return true;
         }
     }

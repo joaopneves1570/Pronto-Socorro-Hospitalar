@@ -1,4 +1,5 @@
 #include "historico.h"
+#define TAM_MAX 10
 
 typedef struct no_ NO;
 
@@ -65,7 +66,7 @@ bool historico_consultar(HISTORICO* hist, char* texto){
 }
 bool historico_cheio(HISTORICO* hist){
     if (hist != NULL){
-        return hist->tamanho == 100;
+        return hist->tamanho == TAM_MAX;
     }
     return false;
 }
@@ -73,7 +74,7 @@ bool historico_vazio(HISTORICO* hist){
     if (hist != NULL){
         return hist->tamanho == 0;
     }
-    return true;
+    return false;
 }
 
 void historico_apagar(HISTORICO** hist){

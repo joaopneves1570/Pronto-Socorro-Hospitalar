@@ -74,7 +74,7 @@ bool triagem_cheia(TRIAGEM* tri){
 
 bool triagem_vazia(TRIAGEM* tri){
     if (tri != NULL){
-        return (tri->tamanho == 0);
+        return (tri->inicio == NULL);
     }
     return true;
 }
@@ -85,9 +85,11 @@ void triagem_apagar(TRIAGEM** tri) {
         return;
     }
 
+    NO* atual = (*tri)->inicio;
     while (!triagem_vazia(*tri)) {
-        PACIENTE* pac_removido = triagem_remover(*tri);
-        paciente_registrar_obito(&pac_removido);
+        NO* prox = atual->prox;
+        free(atual);
+        atual = prox;
     }
 
     free(*tri);
