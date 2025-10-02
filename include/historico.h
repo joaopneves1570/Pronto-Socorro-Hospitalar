@@ -10,8 +10,8 @@
 
     HISTORICO* historico_criar(void);
     bool historico_inserir(HISTORICO* hist, char texto[]);
-    bool historico_retirar(HISTORICO* hist);
-    bool historico_consultar(HISTORICO* hist);
+    bool historico_retirar(HISTORICO* hist, char* texto);
+    bool historico_consultar(HISTORICO* hist, char* texto);
     bool historico_cheio(HISTORICO* hist);
     bool historico_vazio(HISTORICO* hist);
     void historico_apagar(HISTORICO** hist);
