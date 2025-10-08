@@ -1,10 +1,10 @@
-#include "historico.h"
+#include "../include/historico.h"
 
 typedef struct no_ NO;
 
 struct no_{
     NO* anterior;
-    char texto[100];
+    char procedimento[100];
 };
 
 struct historico_{
@@ -23,11 +23,11 @@ HISTORICO* historico_criar(void){
     return NULL;
 }
 
-bool historico_inserir(HISTORICO* hist, char texto[]){
+bool historico_inserir(HISTORICO* hist, char procedimento[]){
     if (hist != NULL && !historico_cheio(hist)){
         NO* novo = (NO* )malloc(sizeof(NO));
         if (novo != NULL){
-            strcpy(novo->texto, texto);
+            strcpy(novo->procedimento, procedimento);
             novo->anterior = hist->topo;
             hist->topo = novo;
             hist->tamanho++;
@@ -37,11 +37,13 @@ bool historico_inserir(HISTORICO* hist, char texto[]){
     }
     return false;
 }
-bool historico_retirar(HISTORICO* hist, char* texto){
+char* historico_remover(HISTORICO* hist){
     if (hist != NULL && !historico_vazio(hist)){
         NO* aux = hist->topo;
 
-        strcpy(texto, hist->topo->texto);
+        char* procedimento = calloc(100, sizeof(char));
+
+        strcpy(procedimento, hist->topo->procedimento);
 
         hist->topo = aux->anterior;
         aux->anterior = NULL;
@@ -54,10 +56,10 @@ bool historico_retirar(HISTORICO* hist, char* texto){
     return false;
 }
 
-bool historico_consultar(HISTORICO* hist, char* texto){
+bool historico_consultar(HISTORICO* hist, char* procedimento){
     if (hist != NULL && !historico_vazio(hist)){
 
-        strcpy(texto, hist->topo->texto);
+        strcpy(procedimento, hist->topo->procedimento);
 
         return true;
     }
@@ -86,5 +88,14 @@ void historico_apagar(HISTORICO** hist){
         }
     }
     free(*hist); (*hist) = NULL;
+}
+
+void historico_imprimir(HISTORICO* hist){
+    if (hist != NULL && (!historico_vazio(hist))){
+        for (NO* no = hist->topo; no != NULL; no = no->anterior)
+        {
+            printf("- %s\n", no->procedimento);
+        }
+    }
 }
 
