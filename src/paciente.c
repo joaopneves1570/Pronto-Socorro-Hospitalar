@@ -1,43 +1,30 @@
-#include "paciente.h"
-#include "triagem.h"
-#include "historico.h"
+#include "../include/paciente.h"
+#include "../include/historico.h"
 
 struct paciente_{
     char* nome;
-    int id;
-    bool registrado;
+    char cpf[12];
     HISTORICO* hist;
 };
 
-PACIENTE* paciente_criar(char nome[], int id, bool registrado){
+PACIENTE* paciente_criar(char nome[], char cpf[]){
     PACIENTE* p = (PACIENTE*)malloc(sizeof(PACIENTE));
     if (p != NULL){
         p->nome = (char*)malloc(sizeof(char)*(strlen(nome) + 1));
 
-        if (p->nome == NULL){
-            free(p);
-            return NULL;
-        }
-        
-        strcpy(p->nome, nome);
-        p->id = id;
-        p->registrado = registrado;
-        p->hist = historico_criar();
-
-        if (p->hist == NULL){
-            free(p->nome);
-            free(p);
-            return NULL;
-        }
-
-        return p;
+        if (p->nome != NULL){
+            strcpy(p->nome, nome);
+            strcpy(p->cpf, cpf);
+            p->hist = historico_criar();
+            return p;
+        } 
     }
 
     free(p);
     return NULL;
 }
 
-bool paciente_registrar_obito(PACIENTE** paciente){
+bool paciente_apagar(PACIENTE** paciente){
     if ((*paciente) != NULL){
         historico_apagar((&(*paciente)->hist));
         free((*paciente)->nome);
@@ -49,7 +36,7 @@ bool paciente_registrar_obito(PACIENTE** paciente){
     return false;
 }
 
-char* paciente_get_nome(PACIENTE* paciente){
+char* paciente_obter_nome(PACIENTE* paciente){
     if (paciente != NULL){
         return paciente->nome;
     }
@@ -57,23 +44,16 @@ char* paciente_get_nome(PACIENTE* paciente){
     return NULL;
 }
 
-int paciente_get_id(PACIENTE* paciente){
+char* paciente_obter_cpf(PACIENTE* paciente){
     if (paciente != NULL){
-        return paciente->id;
+        return paciente->cpf;
     }
 
-    return -1;
+    return NULL;
 }
 
-bool paciente_get_registro(PACIENTE* paciente){
-    if (paciente != NULL){
-        return paciente->registrado;
-    }
 
-    return false;
-}
-
-HISTORICO* paciente_get_historico(PACIENTE* paciente){
+HISTORICO* paciente_obter_historico(PACIENTE* paciente){
     if (paciente != NULL){
         return paciente->hist;
     }
@@ -83,12 +63,7 @@ HISTORICO* paciente_get_historico(PACIENTE* paciente){
 
 void paciente_imprimir(PACIENTE* paciente){
     if (paciente != NULL){
-        char registrado[4];
-        if (paciente_get_registro(paciente)){
-            strcpy(registrado, "Sim");
-        } else {
-            strcpy(registrado, "Nao");
-        }
-        printf("Paciente: %s\nID: %d\nRegistrado: %s\n\n",paciente_get_nome(paciente), paciente_get_id(paciente), registrado);
+    // TODO: Melhorar o print do CPF
+        printf("Paciente: %s\nCPF: %s\n\n",paciente_obter_nome(paciente), paciente_obter_cpf(paciente));
     }
 }
