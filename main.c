@@ -25,6 +25,7 @@ Opcao escolher_opcao()
   do
   {
     scanf("%d", &opcao_escolhida);
+    getchar();
     if (opcao_escolhida < 1 || opcao_escolhida > 8) printf("Opção inválida! (1-8)\n");
   }
   while (opcao_escolhida < 1 || opcao_escolhida > 8);
@@ -34,15 +35,17 @@ Opcao escolher_opcao()
 
 void formatar_cpf(char* cpf)
 {
-  int estranhos = 0;
-  for (int i = 0; i < 15; i++)
-  {
-    if (isdigit(cpf[i]))
+    int j = 0;
+    char temp[12];
+    for (int i = 0; cpf[i] != '\0' && j < 11; i++)
     {
-      cpf[i - estranhos] = cpf[i];
+        if (isdigit(cpf[i]))
+        {
+            temp[j++] = cpf[i];
+        }
     }
-  }
-  cpf[11] = '\0';
+    temp[j] = '\0';
+    strcpy(cpf, temp);
 }
 
 bool eh_cpf_valido(char* cpf)
@@ -67,7 +70,7 @@ bool eh_cpf_valido(char* cpf)
 
   dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
   
-  bool eh_valido = cpf[10] - 48 != dv[1];
+  bool eh_valido = cpf[10] - 48 == dv[1];
 
   if (!eh_valido) printf("CPF inválido!");
 
@@ -81,7 +84,8 @@ char* cpf_ler()
   if (cpf == NULL) return NULL;
 
   printf("Digite o cpf: ");
-  scanf("%15s", cpf);
+  fgets(cpf, 16, stdin);
+  cpf[strcspn(cpf, "\n")] = '\0';
   printf("\n");
 
   return eh_cpf_valido(cpf) ? cpf : NULL;
@@ -101,8 +105,8 @@ PACIENTE* paciente_ler(LISTA* lista)
 
 int main()
 {
-  LISTA* lista;
-  FILA* fila;
+  LISTA* lista = lista_criar();
+  FILA* fila = fila_criar();
 
   if (!LOAD(&lista, &fila)) return -1;
 
@@ -118,7 +122,6 @@ int main()
       {"8. Sair"},
     };
 
-  for (int i = 0; i < 8; i++) printf("%s\n", opcoes[i]);
 
   Opcao opcao_escolhida;
 
@@ -143,7 +146,9 @@ int main()
         else
         {
           printf("Digite o nome do paciente: ");
-          char nome[256]; scanf("%255[^\n]", nome);
+          char nome[256]; 
+          fgets(nome, sizeof(nome), stdin);
+          nome[strcspn(nome, "\n")] = '\0';
           printf("\n");
 
           paciente = paciente_criar(nome, cpf);
@@ -180,7 +185,9 @@ int main()
         if (paciente)
         {
           printf("Escreva o procedimento: ");
-          char procedimento[256]; scanf("%255[^\n]", procedimento);
+          char procedimento[256];
+          fgets(procedimento, sizeof(procedimento), stdin);
+          procedimento[strcspn(procedimento, "\n")] = '\0';
           printf("\n");
 
           HISTORICO* historico = paciente_obter_historico(paciente);
@@ -234,6 +241,7 @@ int main()
         else printf("O paciente não foi encontrado.\n");
 
         break;
+      
 
       case MOSTRAR_LISTA_DE_ESPERA:
         fila_imprimir(fila);
