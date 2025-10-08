@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// Opções do menu principal
 typedef enum
 {
   REGISTRAR_PACIENTE = 1,
@@ -19,13 +20,24 @@ typedef enum
   SAIR = 8,
 } Opcao;
 
+/**
+* @brief Lê o input do usuário, repetindo e avisando caso for inválido
+*
+* @return a enum correspondente à opção escolhida
+*/
 Opcao escolher_opcao()
 {
   Opcao opcao_escolhida;
+
+  // Repete a tentativa de escolha até uma escolha válida
   do
   {
     scanf("%d", &opcao_escolhida);
     getchar();
+
+    printf("\n");
+
+    // Confere se a opção escolhida pelo usuário está no intervalo válido
     if (opcao_escolhida < 1 || opcao_escolhida > 8) printf("Opção inválida! (1-8)\n");
   }
   while (opcao_escolhida < 1 || opcao_escolhida > 8);
@@ -33,56 +45,88 @@ Opcao escolher_opcao()
   return opcao_escolhida;
 }
 
-void formatar_cpf(char* cpf)
+/**
+* @brief Altera a string formatando-a como xxxxxxxxxxxx + \0 + lixo
+*
+* @param cpf chave única do paciente
+*/
+void formatar_cpf(char cpf[])
 {
-    int j = 0;
-    char temp[12];
-    for (int i = 0; cpf[i] != '\0' && j < 11; i++)
-    {
-        if (isdigit(cpf[i]))
-        {
-            temp[j++] = cpf[i];
-        }
-    }
-    temp[j] = '\0';
-    strcpy(cpf, temp);
+  int estranhos = 0;
+
+  // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
+  for (int i = 0; i < 15; i++)
+  {
+    if (isdigit(cpf[i])) cpf[i - estranhos] = cpf[i];
+    else estranhos++;
+  }
+
+  cpf[11] = '\0';
 }
 
-bool eh_cpf_valido(char* cpf)
+/**
+* @brief formata o CPF e confere se ele é válido, avisando o usuário caso contrário
+*
+* @param cpf chave única do paciente
+* @return true se o CPF é valido, false caso contrário
+*/
+bool eh_cpf_valido(char cpf[])
 {
   formatar_cpf(cpf);
 
-  for (int i = 0; i < 11; i++) if (!isdigit(cpf[i])) return false;
+  // É inválido se há caracteres estranhos na string
+  for (int i = 0; i < 11; i++) if (!isdigit(cpf[i])) goto invalido;
 
-  if (cpf[11] != '\0') return false;
+  // É inválido se não terminar onde deveria
+  if (cpf[11] != '\0') goto invalido;
 
+  // Algoritmo da verificação de CPF
   int soma = 0, dv[2];
 
-  for (int i = 0; i < 9; i++) soma += (cpf[i] - 48) * (10 - i);
+  // Primeiro dígito verificador
+  for (int i = 0; i < 9; i++) soma += (cpf[i] - '0') * (10 - i);
 
   dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
-  if (cpf[9] - 48 != dv[0]) return false;
+  // Confere se o primeiro dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
+  if (cpf[9] - '0' != dv[0]) goto invalido;
 
   soma = 0;
 
-  for (int i = 0; i < 10; i++) soma += (cpf[i] - 48) * (11 - i);
+  // Segundo dígito verificador
+  for (int i = 0; i < 10; i++) soma += (cpf[i] - '0') * (11 - i);
 
   dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
   
-  bool eh_valido = cpf[10] - 48 == dv[1];
+  // Confere se o segundo dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
+  if (cpf[10] - '0' != dv[1]) goto invalido;
 
-  if (!eh_valido) printf("CPF inválido!");
+  // Se não falhar em nenhum teste, retorna verdadeiro
 
-  return eh_valido;
+  return true;
+
+  // Se falhar em algum teste, avisa o usuário e retorna falso
+invalido:
+
+  printf("CPF inválido!");
+
+  return false;
 }
 
+/**
+* @brief Pede que o usuário digite um CPF, aloca a string dinamicamente para recebe-lo e testa se é válido
+*
+* @return um ponteiro para char de 15 posições alocado dinamicamente se válido, NULL caso contrário
+*/ 
 char* cpf_ler()
 {
-  char* cpf = calloc(16, sizeof(char));
+  // Tenta alocar o string
+  char* cpf = calloc(15, sizeof(char));
 
+  // Se falhar retorna um ponteiro nulo
   if (cpf == NULL) return NULL;
 
+  // Mostra a instrução TODO:: Também confere se é valido, att a descrição
   printf("Digite o cpf: ");
   fgets(cpf, 16, stdin);
   cpf[strcspn(cpf, "\n")] = '\0';
@@ -91,6 +135,12 @@ char* cpf_ler()
   return eh_cpf_valido(cpf) ? cpf : NULL;
 }
 
+/**
+* @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitará
+*
+* @param lista a lista de pacientes
+* @return o paciente com o CPF fornecido pelo cliente, NULL caso algo dê errado
+*/
 PACIENTE* paciente_ler(LISTA* lista)
 {
   PACIENTE* paciente = NULL;
@@ -122,7 +172,6 @@ int main()
       {"8. Sair"},
     };
 
-
   Opcao opcao_escolhida;
 
   do
@@ -145,8 +194,9 @@ int main()
         if (paciente) printf("Paciente já cadastrado.\n");
         else
         {
+          char nome[256];
+
           printf("Digite o nome do paciente: ");
-          char nome[256]; 
           fgets(nome, sizeof(nome), stdin);
           nome[strcspn(nome, "\n")] = '\0';
           printf("\n");
@@ -184,8 +234,9 @@ int main()
 
         if (paciente)
         {
-          printf("Escreva o procedimento: ");
           char procedimento[256];
+
+          printf("Escreva o procedimento: ");
           fgets(procedimento, sizeof(procedimento), stdin);
           procedimento[strcspn(procedimento, "\n")] = '\0';
           printf("\n");
