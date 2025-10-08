@@ -1,4 +1,4 @@
-#include "lista.h"
+#include "../include/lista.h"
 
 typedef struct no_ NO;
 
@@ -48,21 +48,43 @@ bool lista_remover(LISTA* lista, PACIENTE* pac){
     if ((lista != NULL) && (!lista_vazia(lista))){
         NO* aux = lista->inicio->prox;
         while (aux != lista->inicio){
-            if (aux == pac) break;
+            if (aux->pac == pac) break;
             aux = aux->prox;
         }
 
-        if (aux == pac){
-            paciente_registrar_obito(&(aux->pac));
+        if (aux->pac == pac){
+            paciente_apagar(&(aux->pac));
             aux->ant->prox = aux->prox;
             aux->prox->ant = aux->ant;
             aux->ant = NULL;
             aux->prox = NULL;
+
+            free(aux);
+
             return true;
         }
     }
 
     return false;
+}
+
+PACIENTE* lista_remover_inicio(LISTA* lista){
+    if ((lista != NULL) && (!lista_vazia(lista))){
+        NO* no = lista->inicio->prox;
+        
+        PACIENTE* paciente = no->pac;
+
+        no->ant->prox = no->prox;
+        no->prox->ant = no->ant;
+        no->ant = NULL;
+        no->prox = NULL;
+
+        free(no);
+
+        return paciente;
+    }
+
+    return NULL;
 }
 
 bool lista_vazia(LISTA* l){
@@ -83,10 +105,10 @@ bool lista_cheia(LISTA* l){
     return false;
 }
 
-PACIENTE* lista_buscar(LISTA* l, int id){
+PACIENTE* lista_buscar(LISTA* l, char* cpf){
     if ((l != NULL) && (!lista_vazia(l))){
         NO* aux = l->inicio->prox;
-        while ((paciente_get_id(aux->pac) != id) && (aux != l->inicio)){
+        while ((strcmp(paciente_obter_cpf(aux->pac), cpf) != 0) && (aux != l->inicio)){
             aux = aux->prox;
         }
 
@@ -118,7 +140,7 @@ void lista_apagar(LISTA** l) {
     
     while (no_atual != (*l)->inicio) {
         no_proximo = no_atual->prox;
-        paciente_registrar_obito(&(no_atual->pac));        
+        paciente_apagar(&(no_atual->pac));        
         free(no_atual);
         no_atual = no_proximo;
     }

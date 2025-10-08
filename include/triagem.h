@@ -1,5 +1,5 @@
-#ifndef TRIAGEM_H
-    #define TRIAGEM_H
+#ifndef FILA_H
+    #define FILA_H
 
     #include <stdio.h>
     #include <stdlib.h>
@@ -7,17 +7,17 @@
     #include <string.h>
     #include "paciente.h"
 
-    typedef struct triagem_ TRIAGEM;
+    typedef struct fila_ FILA;
 
-    TRIAGEM* triagem_criar();
-    PACIENTE* triagem_remover(TRIAGEM* tri);
+    FILA* fila_criar();
+    PACIENTE* fila_remover(FILA* fila);
     
-    bool triagem_inserir(TRIAGEM* tri, PACIENTE* pac);
-    bool triagem_cheia(TRIAGEM* tri);
-    bool triagem_vazia(TRIAGEM* tri);
+    bool fila_inserir(FILA* fila, PACIENTE* paciente);
+    bool fila_cheia(FILA* fila);
+    bool fila_vazia(FILA* fila);
 
-    void triagem_apagar(TRIAGEM** tri);
-    void triagem_mostrar(TRIAGEM* tri);
+    void fila_apagar(FILA** fila);
+    void fila_mostrar(FILA* fila);
     
 
 
