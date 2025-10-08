@@ -128,7 +128,8 @@ char* cpf_ler()
 
   // Mostra a instrução TODO:: Também confere se é valido, att a descrição
   printf("Digite o cpf: ");
-  scanf("%15s", cpf);
+  fgets(cpf, 16, stdin);
+  cpf[strcspn(cpf, "\n")] = '\0';
   printf("\n");
 
   return eh_cpf_valido(cpf) ? cpf : NULL;
@@ -291,6 +292,7 @@ int main()
         else printf("O paciente não foi encontrado.\n");
 
         break;
+      
 
       case MOSTRAR_LISTA_DE_ESPERA:
         fila_imprimir(fila);

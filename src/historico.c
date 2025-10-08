@@ -51,9 +51,9 @@ char* historico_remover(HISTORICO* hist){
 
         hist->tamanho--;
 
-        return true;
+        return procedimento;
     }
-    return false;
+    return NULL;
 }
 
 bool historico_consultar(HISTORICO* hist, char* procedimento){
