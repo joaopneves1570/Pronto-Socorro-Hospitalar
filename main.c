@@ -143,14 +143,14 @@ bool eh_cpf_valido(char cpf[])
 char* cpf_ler()
 {
   // Tenta alocar o string
-  char* cpf = calloc(15, sizeof(char));
+  char* cpf = calloc(16, sizeof(char));
 
   // Se falhar retorna um ponteiro nulo
   if (cpf == NULL) return NULL;
 
   // Mostra a instrução TODO:: Também confere se é valido, att a descrição
   printf("Digite o cpf: ");
-  fgets(cpf, 15, stdin);
+  fgets(cpf, 16, stdin);
   cpf[14] = '\0';
   printf("\n");
 
@@ -206,8 +206,10 @@ int main()
   do
   {
     for (int i = 0; i < 8; i++) printf("%s\n", opcoes[i]);
-    printf("Escolha uma das opções acima: ");
+    printf("\nEscolha uma das opções acima: ");
     opcao_escolhida = escolher_opcao();
+
+    printf("Você escolheu: %s\n\n", opcoes[opcao_escolhida - 1]);
 
     switch (opcao_escolhida)
     {
@@ -251,7 +253,12 @@ int main()
 
         if (paciente)
         {
-          lista_remover(lista, paciente);
+          if (fila_buscar(fila, paciente_obter_cpf(paciente)))
+          {
+            printf("O paciente está na fila de espera, ainda há esperança!\n");
+            break;
+          }
+          paciente = lista_remover(lista, paciente);
           paciente_apagar(&paciente);
           
           printf("Registro do paciente removido de acordo com a LGPDb.\n");
@@ -296,13 +303,17 @@ int main()
 
           if (historico)
           {
-            char* procedimento = historico_remover(historico);
-            if (procedimento)
+            if (historico_vazio(historico)) printf("O histórico do paciente está vazio.\n");
+            else
             {
-              printf("O seguinte procedimento retirado do histórico do paciente:\n%s\n", procedimento);
-              free(procedimento);
+              char* procedimento = historico_remover(historico);
+              if (procedimento)
+              {
+                printf("O seguinte procedimento retirado do histórico do paciente:\n%s\n", procedimento);
+                free(procedimento);
+              }
+              else printf("O último procedimento não pôde ser removido do histórico do paciente.\n");
             }
-            else printf("O último procedimento não pôde ser removido do histórico do paciente.\n");
           }
           else printf("Falha ao obter o histórico do paciente.\n");
         }
@@ -353,8 +364,11 @@ int main()
   }
   while (opcao_escolhida != SAIR);
 
-  SAVE(lista, fila);
+  SAVE(&lista, &fila);
+
+  printf("A fila é NULL dps do save? %d\n", fila == NULL);
 
   lista_apagar(&lista);
+  printf("Apagou a lista no main\n");
   fila_apagar(&fila);
 }

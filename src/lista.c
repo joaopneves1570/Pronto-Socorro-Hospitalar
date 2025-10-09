@@ -1,5 +1,6 @@
 #include "../include/lista.h"
 #include <stdio.h>
+#include <string.h>
 
 typedef struct no_ NO;
 
@@ -47,28 +48,36 @@ bool lista_inserir(LISTA* lista, PACIENTE* p){
     return false;
 }
 
-bool lista_remover(LISTA* lista, PACIENTE* pac){
-    if ((lista != NULL) && (!lista_vazia(lista))){
+PACIENTE* lista_remover(LISTA* lista, PACIENTE* pac){
+  printf("lista_remover\n");
+    if ((lista != NULL) && (pac != NULL) && (!lista_vazia(lista))){
+        printf("lista_remover não nula nem vazia\n");
+        paciente_definir_cpf(lista->inicio->pac, paciente_obter_cpf(pac));
         NO* aux = lista->inicio->prox;
-        while (aux != lista->inicio){
-            if (aux->pac == pac) break;
-            aux = aux->prox;
-        }
+        printf("aux é NULL? %d\n", aux == NULL);
+        printf("aux->pac é NULL? %d\n", aux->pac == NULL);
+        char* cpf_paciente = paciente_obter_cpf(pac);
+        // Enquanto o cpf do paciente atual for diferente do esperado vai pro próximo
+        while (strcmp(paciente_obter_cpf(aux->pac), cpf_paciente)) aux = aux->prox;
 
-        if (aux->pac == pac){
-            paciente_apagar(&(aux->pac));
+        printf("Parou a busca.\n");
+        if (aux != lista->inicio){
+            printf("Achou!\n");
             aux->ant->prox = aux->prox;
             aux->prox->ant = aux->ant;
             aux->ant = NULL;
             aux->prox = NULL;
 
+            PACIENTE* paciente = aux->pac;
+
             free(aux);
 
-            return true;
+            return paciente;
         }
+        printf("Não achou!\n");
     }
 
-    return false;
+    return NULL;
 }
 
 PACIENTE* lista_remover_inicio(LISTA* lista){
@@ -141,10 +150,12 @@ void lista_mostrar(LISTA* l) {
 
 
 void lista_apagar(LISTA** l) {
+  printf("lista_apagar\n");
     if (l == NULL || *l == NULL) {
         return;
     }
 
+  printf("lista_apagar não NULL\n");
     NO* no_atual = (*l)->inicio->prox;
     NO* no_proximo;
     

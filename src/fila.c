@@ -1,4 +1,5 @@
 #include "../include/fila.h"
+#include <stdio.h>
 #define TAM_MAX 50
 
 typedef struct no_ NO;
@@ -94,8 +95,33 @@ void fila_apagar(FILA** fila) {
     *fila = NULL;
 }
 
+
+PACIENTE *fila_buscar(FILA *fila, char cpf[])
+{
+  if (fila && !fila_vazia(fila))
+  {
+    NO* aux = fila->inicio;
+    printf("Lista buscar\n");
+    printf("aux é NULL? %d\n", aux == NULL);
+    printf("aux->pac é NULL? %d\n", aux->pac == NULL);
+    while (aux && strcmp(paciente_obter_cpf(aux->pac), cpf) != 0)
+    {
+      printf("Prox\n");
+      aux = aux->prox;
+    }
+
+    return aux ? aux->pac : NULL;
+  }
+
+  return NULL;
+}
+
 void fila_imprimir(FILA* fila){
-    if (fila != NULL && !fila_vazia(fila)){
+    if (fila != NULL){
+        if (fila_vazia(fila)){
+          printf("A fila está vazia.\n");
+          return;
+        }
         NO* atual = fila->inicio;
         PACIENTE* pac;
         for (int i = 0; i < fila->tamanho; i++){
