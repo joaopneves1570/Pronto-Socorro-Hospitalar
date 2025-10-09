@@ -92,7 +92,12 @@ void historico_apagar(HISTORICO** hist){
 }
 
 void historico_imprimir(HISTORICO* hist){
-    if (hist != NULL && (!historico_vazio(hist))){
+    if (hist != NULL){
+        if (historico_vazio(hist))
+        {
+            printf("O histórico do paciente está vazio.\n");
+            return;
+        }
         for (NO* no = hist->topo; no != NULL; no = no->anterior)
         {
             printf("- %s\n", no->procedimento);

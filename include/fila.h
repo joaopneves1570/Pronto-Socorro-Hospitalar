@@ -9,6 +9,7 @@
 	FILA *fila_criar(void);
 	bool fila_inserir(FILA *fila, PACIENTE *paciente);
 	PACIENTE *fila_remover(FILA *fila);
+	PACIENTE *fila_buscar(FILA *fila, char cpf[]);
 	void fila_apagar(FILA **fila);
 	PACIENTE *fila_frente(FILA *fila);
 	int fila_tamanho(FILA *fila);

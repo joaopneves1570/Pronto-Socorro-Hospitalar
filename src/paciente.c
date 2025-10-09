@@ -27,7 +27,10 @@ PACIENTE* paciente_criar(char nome[], char cpf[]){
 }
 
 bool paciente_apagar(PACIENTE** paciente){
-    if ((*paciente) != NULL){
+    printf("Paciente apagar\n");
+    if (paciente != NULL && (*paciente) != NULL){
+        printf("Paciente apagar e não é nulo\n");
+        printf("Histórico do paciente é NULL? %d\n", (*paciente)->hist == NULL);
         historico_apagar((&(*paciente)->hist));
         free((*paciente)->nome);
         free(*paciente);
@@ -70,9 +73,11 @@ HISTORICO* paciente_obter_historico(PACIENTE* paciente){
     return NULL;
 }
 
+char* paciente_para_string(PACIENTE* paciente)
+{
+
+}
+
 void paciente_imprimir(PACIENTE* paciente){
-    if (paciente != NULL){
-    // TODO: Melhorar o print do CPF
-        printf("Paciente: %s\nCPF: %s\n\n",paciente_obter_nome(paciente), paciente_obter_cpf(paciente));
-    }
+    if (paciente != NULL) printf("%s\n",paciente_obter_nome(paciente));
 }

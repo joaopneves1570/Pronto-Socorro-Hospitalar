@@ -2,14 +2,39 @@
 #include "../include/paciente.h"
 #include "../include/lista.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-bool SAVE(LISTA *lista, FILA *fila)
+bool SAVE(LISTA **lista, FILA **fila)
 {
-  if (!lista || !fila) return false;
+  if (!lista || !(*lista) || !fila || !*(fila)) return false;
   
   PACIENTE* paciente; // Variável auxiliar 
+  char cpf[12];
+
+  // Salvando os itens da fila
+
+  FILE *fp_fila = fopen("fila_itens.bin", "wb");
+  if (!fp_fila) return false;
+
+  // Se mantém no while enquanto a fila não estiver vazia
+  while((paciente = fila_remover(*fila)))
+  {
+    printf("Oieeee\n");
+    // Escreve a chave no arquivo
+    strcpy(cpf, paciente_obter_cpf(paciente));
+    printf("strcpy\n");
+    fwrite(cpf, sizeof(char), 12, fp_fila);
+    printf("fwrite\n");
+  }
+
+  printf("Passou do while\n");
+
+  printf("Fechou o arquivo\n");
+  fclose(fp_fila); fp_fila = NULL;
+  // Libera memória
+  printf("Apagou a fila\n");
+  printf("A fila é NULL? %d\n", fila == NULL);
+  fila_apagar(fila);
 
   // Salvando os itens da lista
 
@@ -17,47 +42,18 @@ bool SAVE(LISTA *lista, FILA *fila)
 
   if(!fp_lista) return false;
 
-  paciente = lista_remover_inicio(lista);
-
-  char cpf[12];
-
   // Se mantém no while enquanto a lista não estiver vazia
-  while(paciente != NULL)
+  while((paciente = lista_remover_inicio(*lista)))
   {
     // Escreve a chave no arquivo
     strcpy(cpf, paciente_obter_cpf(paciente));
     fwrite(cpf, sizeof(char), 12, fp_lista);
     // Apaga o item removido
     paciente_apagar(&paciente);
-    // Atualiza a variável auxiliar
-    lista_remover_inicio(lista);
   }
   // Libera memória
-  lista_apagar(&lista);
   fclose(fp_lista); fp_lista = NULL;
-
-  // Salvando os itens da fila
-
-  FILE *fp_fila = fopen("fila_itens.bin", "wb");
-  if(!fp_fila)
-      return false;
-
-  paciente = fila_remover(fila);
-
-  // Se mantém no while enquanto a fila não estiver vazia
-  while(paciente != NULL)
-  {
-    // Escreve a chave no arquivo
-    strcpy(cpf, paciente_obter_cpf(paciente));
-    fwrite(cpf, sizeof(char), 12, fp_lista);
-    // Apaga o item removido
-    paciente_apagar(&paciente);
-    // Atualiza a variável auxiliar
-    fila_remover(fila);
-  }
-  // Libera memória
-  fila_apagar(&fila);
-  fclose(fp_fila); fp_fila = NULL;
+  lista_apagar(lista);
 
   return true;
 }
@@ -75,8 +71,9 @@ bool LOAD(LISTA **lista, FILA **fila)
   if (!fp_lista) return false;
 
   // Lê as chaves até o fim do arquivo
-  while(fread(cpf, sizeof(char), 12, fp_lista) == 1)
+  while(fread(cpf, sizeof(char) * 12, 1, fp_lista) == 1)
   {
+    cpf[11] = '\0';
     PACIENTE* paciente = paciente_criar("", cpf);
     lista_inserir(*lista, paciente);
   }
@@ -90,8 +87,9 @@ bool LOAD(LISTA **lista, FILA **fila)
   if (!fp_fila) return false;
 
   // Lê as chaves até o fim do arquivo
-  while(fread(cpf, sizeof(char), 12, fp_fila) == 1)
+  while(fread(cpf, sizeof(char) * 12, 1, fp_fila) == 1)
   {
+    cpf[11] = '\0';
     PACIENTE* paciente = paciente_criar("", cpf);
     fila_inserir(*fila, paciente);
   }

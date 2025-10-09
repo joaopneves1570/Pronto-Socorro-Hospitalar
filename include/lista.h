@@ -13,7 +13,7 @@
     LISTA* lista_criar();
 
     bool lista_inserir(LISTA* l, PACIENTE* p);
-    bool lista_remover(LISTA* l, PACIENTE* p);
+    PACIENTE* lista_remover(LISTA* l, PACIENTE* p);
     PACIENTE* lista_remover_inicio(LISTA* l);
     bool lista_vazia(LISTA* l);
     bool lista_cheia(LISTA* l); 
