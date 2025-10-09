@@ -38,7 +38,7 @@ Opcao escolher_opcao()
     printf("\n");
 
     // Confere se a opção escolhida pelo usuário está no intervalo válido
-    if (opcao_escolhida < 1 || opcao_escolhida > 8) printf("Opção inválida! (1-8)\n");
+    if (opcao_escolhida < 1 || opcao_escolhida > 8) printf("Opção inválida! Escolha uma das opções acima (1-8): ");
   }
   while (opcao_escolhida < 1 || opcao_escolhida > 8);
 
@@ -52,16 +52,20 @@ Opcao escolher_opcao()
 */
 void formatar_cpf(char cpf[])
 {
-  int estranhos = 0;
+  int tamanho = 0;
 
   // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
-  for (int i = 0; i < 15; i++)
+  for (int i = 0; cpf[i] != '\0'; i++)
   {
-    if (isdigit(cpf[i])) cpf[i - estranhos] = cpf[i];
-    else estranhos++;
+    printf("%c", cpf[i]);
+    if (isdigit(cpf[i]))
+    {
+      cpf[tamanho] = cpf[i];
+      tamanho++;
+    }
   }
 
-  cpf[11] = '\0';
+  cpf[tamanho] = '\0';
 }
 
 /**
@@ -74,11 +78,29 @@ bool eh_cpf_valido(char cpf[])
 {
   formatar_cpf(cpf);
 
-  // É inválido se há caracteres estranhos na string
-  for (int i = 0; i < 11; i++) if (!isdigit(cpf[i])) goto invalido;
+  int digitos_iguais_ao_primeiro = 0;
 
-  // É inválido se não terminar onde deveria
-  if (cpf[11] != '\0') goto invalido;
+  // É inválido se há caracteres estranhos na string
+  for (int i = 0; i < 11; i++)
+  {
+    if (cpf[i] == cpf[0]) digitos_iguais_ao_primeiro++;
+    if (cpf[i] == '\0')
+    {
+      printf("CPF inválido! (Muito curto)");
+      return false;
+    }
+    else if (!isdigit(cpf[i]))
+    {
+      printf("CPF inválido! (Caracteres estranhos)");
+      return false;
+    }
+  }
+
+  if (digitos_iguais_ao_primeiro == 11)
+  {
+    printf("CPF inválido! (Combinação proibida)");
+    return false;
+  }
 
   // Algoritmo da verificação de CPF
   int soma = 0, dv[2];
@@ -89,7 +111,11 @@ bool eh_cpf_valido(char cpf[])
   dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
   // Confere se o primeiro dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-  if (cpf[9] - '0' != dv[0]) goto invalido;
+  if (cpf[9] - '0' != dv[0])
+  {
+    printf("CPF inválido! (Esse CPF não existe)");
+    return false;
+  }
 
   soma = 0;
 
@@ -99,18 +125,14 @@ bool eh_cpf_valido(char cpf[])
   dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
   
   // Confere se o segundo dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-  if (cpf[10] - '0' != dv[1]) goto invalido;
+  if (cpf[10] - '0' != dv[1])
+  {
+    printf("CPF inválido! (Esse CPF não existe)");
+    return false;
+  }
 
   // Se não falhar em nenhum teste, retorna verdadeiro
-
   return true;
-
-  // Se falhar em algum teste, avisa o usuário e retorna falso
-invalido:
-
-  printf("CPF inválido!");
-
-  return false;
 }
 
 /**
@@ -128,11 +150,18 @@ char* cpf_ler()
 
   // Mostra a instrução TODO:: Também confere se é valido, att a descrição
   printf("Digite o cpf: ");
-  fgets(cpf, 16, stdin);
-  cpf[strcspn(cpf, "\n")] = '\0';
+  fgets(cpf, 15, stdin);
+  cpf[14] = '\0';
   printf("\n");
 
-  return eh_cpf_valido(cpf) ? cpf : NULL;
+  if (!eh_cpf_valido(cpf))
+  {
+    free(cpf);
+    cpf = NULL;
+  }
+
+  //printf("CPF válido.\n");
+  return cpf;
 }
 
 /**
@@ -179,7 +208,6 @@ int main()
     for (int i = 0; i < 8; i++) printf("%s\n", opcoes[i]);
     printf("Escolha uma das opções acima: ");
     opcao_escolhida = escolher_opcao();
-    printf("\n");
 
     switch (opcao_escolhida)
     {
@@ -189,7 +217,11 @@ int main()
     
         if (cpf == NULL) break;
 
+        printf("CPF deu certo\n");
+
         PACIENTE* paciente = lista_buscar(lista, cpf);
+
+        printf("Buscou o paciente\n");
 
         if (paciente) printf("Paciente já cadastrado.\n");
         else
@@ -316,6 +348,8 @@ int main()
       }
       case SAIR: break;
     }
+
+    printf("\n");
   }
   while (opcao_escolhida != SAIR);
 

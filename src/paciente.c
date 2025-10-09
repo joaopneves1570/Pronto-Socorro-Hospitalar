@@ -1,5 +1,7 @@
 #include "../include/paciente.h"
 #include "../include/historico.h"
+#include <stdio.h>
+#include <string.h>
 
 struct paciente_{
     char* nome;
@@ -45,10 +47,17 @@ char* paciente_obter_nome(PACIENTE* paciente){
 
 char* paciente_obter_cpf(PACIENTE* paciente){
     if (paciente != NULL){
+        printf("PACICPF\n");
         return paciente->cpf;
     }
 
     return NULL;
+}
+
+void paciente_definir_cpf(PACIENTE* paciente, char cpf[]){
+    if (paciente != NULL){
+        strcpy(paciente->cpf, cpf);
+    }
 }
 
 

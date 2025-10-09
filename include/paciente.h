@@ -13,6 +13,7 @@
     bool paciente_apagar(PACIENTE** paciente);
     char* paciente_obter_nome(PACIENTE* paciente);
     char* paciente_obter_cpf(PACIENTE* paciente);    
+    void paciente_definir_cpf(PACIENTE* paciente, char cpf[]);    
     HISTORICO* paciente_obter_historico(PACIENTE* paciente);
     void paciente_imprimir(PACIENTE* paciente);
 
