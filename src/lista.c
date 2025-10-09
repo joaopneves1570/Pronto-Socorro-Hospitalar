@@ -1,4 +1,5 @@
 #include "../include/lista.h"
+#include <stdio.h>
 
 typedef struct no_ NO;
 
@@ -18,6 +19,7 @@ LISTA* lista_criar(){
     if (lista != NULL){
         NO* cabeca = (NO*)malloc(sizeof(NO));
         if (cabeca != NULL){
+            cabeca->pac = paciente_criar("CABEÇUDO", "00000000000");
             lista->inicio = cabeca;
             lista->inicio->prox = lista->inicio;
             lista->inicio->ant = lista->inicio;
@@ -110,10 +112,15 @@ bool lista_cheia(LISTA* l){
 
 PACIENTE* lista_buscar(LISTA* l, char* cpf){
     if ((l != NULL) && (!lista_vazia(l))){
+        paciente_definir_cpf(l->inicio->pac, cpf);
         NO* aux = l->inicio->prox;
-        while ((strcmp(paciente_obter_cpf(aux->pac), cpf) != 0) && (aux != l->inicio)){
+        printf("aux é NULL? %d\n", aux == NULL);
+        printf("aux->pac é NULL? %d\n", aux->pac == NULL);
+        while ((strcmp(paciente_obter_cpf(aux->pac), cpf) != 0)){
+          printf("Prox\n");
             aux = aux->prox;
         }
+        printf("BBBBBBB\n");
 
         if (aux != l->inicio)
             return aux->pac;
