@@ -51,18 +51,14 @@ bool lista_inserir(LISTA* lista, PACIENTE* p){
 PACIENTE* lista_remover(LISTA* lista, PACIENTE* pac){
   printf("lista_remover\n");
     if ((lista != NULL) && (pac != NULL) && (!lista_vazia(lista))){
-        printf("lista_remover não nula nem vazia\n");
         paciente_definir_cpf(lista->inicio->pac, paciente_obter_cpf(pac));
         NO* aux = lista->inicio->prox;
-        printf("aux é NULL? %d\n", aux == NULL);
-        printf("aux->pac é NULL? %d\n", aux->pac == NULL);
         char* cpf_paciente = paciente_obter_cpf(pac);
         // Enquanto o cpf do paciente atual for diferente do esperado vai pro próximo
         while (strcmp(paciente_obter_cpf(aux->pac), cpf_paciente)) aux = aux->prox;
 
         printf("Parou a busca.\n");
         if (aux != lista->inicio){
-            printf("Achou!\n");
             aux->ant->prox = aux->prox;
             aux->prox->ant = aux->ant;
             aux->ant = NULL;
@@ -74,7 +70,6 @@ PACIENTE* lista_remover(LISTA* lista, PACIENTE* pac){
 
             return paciente;
         }
-        printf("Não achou!\n");
     }
 
     return NULL;
@@ -123,13 +118,9 @@ PACIENTE* lista_buscar(LISTA* l, char* cpf){
     if ((l != NULL) && (!lista_vazia(l))){
         paciente_definir_cpf(l->inicio->pac, cpf);
         NO* aux = l->inicio->prox;
-        printf("aux é NULL? %d\n", aux == NULL);
-        printf("aux->pac é NULL? %d\n", aux->pac == NULL);
         while ((strcmp(paciente_obter_cpf(aux->pac), cpf) != 0)){
-          printf("Prox\n");
             aux = aux->prox;
         }
-        printf("BBBBBBB\n");
 
         if (aux != l->inicio)
             return aux->pac;
@@ -150,12 +141,10 @@ void lista_mostrar(LISTA* l) {
 
 
 void lista_apagar(LISTA** l) {
-  printf("lista_apagar\n");
     if (l == NULL || *l == NULL) {
         return;
     }
 
-  printf("lista_apagar não NULL\n");
     NO* no_atual = (*l)->inicio->prox;
     NO* no_proximo;
     

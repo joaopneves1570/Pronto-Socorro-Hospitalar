@@ -101,13 +101,9 @@ PACIENTE *fila_buscar(FILA *fila, char cpf[])
   if (fila && !fila_vazia(fila))
   {
     NO* aux = fila->inicio;
-    printf("Lista buscar\n");
-    printf("aux é NULL? %d\n", aux == NULL);
-    printf("aux->pac é NULL? %d\n", aux->pac == NULL);
     while (aux && strcmp(paciente_obter_cpf(aux->pac), cpf) != 0)
     {
-      printf("Prox\n");
-      aux = aux->prox;
+        aux = aux->prox;
     }
 
     return aux ? aux->pac : NULL;
@@ -130,4 +126,12 @@ void fila_imprimir(FILA* fila){
             atual = atual->prox;
         }
     }
+}
+
+int fila_tamanho(FILA* fila){
+    if (fila != NULL){
+        return fila->tamanho;
+    }
+
+    return -1;
 }

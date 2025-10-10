@@ -38,6 +38,7 @@ bool historico_inserir(HISTORICO* hist, char procedimento[]){
     }
     return false;
 }
+
 char* historico_remover(HISTORICO* hist){
     if (hist != NULL && !historico_vazio(hist)){
         NO* aux = hist->topo;
@@ -66,12 +67,14 @@ bool historico_consultar(HISTORICO* hist, char* procedimento){
     }
     return false;
 }
+
 bool historico_cheio(HISTORICO* hist){
     if (hist != NULL){
         return hist->tamanho == TAM_MAX;
     }
     return false;
 }
+
 bool historico_vazio(HISTORICO* hist){
     if (hist != NULL){
         return hist->tamanho == 0;
@@ -105,3 +108,10 @@ void historico_imprimir(HISTORICO* hist){
     }
 }
 
+int historico_tamanho(HISTORICO* hist){
+    if (hist != NULL && !historico_vazio(hist)){
+        return hist->tamanho;
+    }
+
+    return -1;
+}

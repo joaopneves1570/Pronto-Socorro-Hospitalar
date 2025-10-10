@@ -1,6 +1,5 @@
 #ifndef PACIENTE_H
     #define PACIENTE_H
-
     #include "historico.h"
     #include <stdio.h>
     #include <stdlib.h>

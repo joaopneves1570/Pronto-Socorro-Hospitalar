@@ -16,5 +16,6 @@
     bool historico_vazio(HISTORICO* hist);
     void historico_apagar(HISTORICO** hist);
     void historico_imprimir(HISTORICO* hist);
+    int historico_tamanho(HISTORICO* hist);
 
 #endif
