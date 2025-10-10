@@ -5,6 +5,7 @@ CFLAGS = -Wall -g -finput-charset=UTF-8 -fexec-charset=UTF-8
 ifeq ($(OS),Windows_NT)
     RM = del /F /Q
     TARGET = exe.exe
+    FILES = data\fila_itens.bin data\lista_itens.bin
 # Caso contrário, assume um sistema tipo Unix (Linux, macOS)
 else
     RM = rm -f
@@ -22,4 +23,4 @@ run:
 
 # O target 'clean' usa a variável RM para o comando de remoção
 clean:
-	@$(RM) $(TARGET)
+	@$(RM) $(TARGET) $(FILES)

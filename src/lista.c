@@ -57,7 +57,6 @@ PACIENTE* lista_remover(LISTA* lista, PACIENTE* pac){
         // Enquanto o cpf do paciente atual for diferente do esperado vai pro próximo
         while (strcmp(paciente_obter_cpf(aux->pac), cpf_paciente)) aux = aux->prox;
 
-        printf("Parou a busca.\n");
         if (aux != lista->inicio){
             aux->ant->prox = aux->prox;
             aux->prox->ant = aux->ant;
@@ -65,7 +64,6 @@ PACIENTE* lista_remover(LISTA* lista, PACIENTE* pac){
             aux->prox = NULL;
 
             PACIENTE* paciente = aux->pac;
-
             free(aux);
 
             return paciente;

@@ -17,5 +17,7 @@
     void historico_apagar(HISTORICO** hist);
     void historico_imprimir(HISTORICO* hist);
     int historico_tamanho(HISTORICO* hist);
+    bool historico_gravar(HISTORICO* hist, FILE* fp);
+    HISTORICO* historico_ler(FILE* fp);
 
 #endif

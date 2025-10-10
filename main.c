@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <locale.h>
 
-// Opùùes do menu principal
+// Op??es do menu principal
 typedef enum
 {
     REGISTRAR_PACIENTE = 1,
@@ -22,16 +22,16 @@ typedef enum
 } Opcao;
 
 /**
- * @brief Lù o input do usuùrio, repetindo e avisando caso for invùlido
+ * @brief L? o input do usu?rio, repetindo e avisando caso for inv?lido
  *
- * @return a enum correspondente ù opùùo escolhida
+ * @return a enum correspondente ? op??o escolhida
  */
 Opcao escolher_opcao()
 {
     Opcao opcao_escolhida;
     int opcao_int;
 
-    // Repete a tentativa de escolha atù uma escolha vùlida
+    // Repete a tentativa de escolha at? uma escolha v?lida
     do
     {
         scanf("%d", &opcao_int);
@@ -39,9 +39,9 @@ Opcao escolher_opcao()
 
         printf("\n");
 
-        // Confere se a opùùo escolhida pelo usuùrio estù no intervalo vùlido
+        // Confere se a op??o escolhida pelo usu?rio est? no intervalo v?lido
         if (opcao_int < 1 || opcao_int > 8)
-            printf("Opùùo invùlida! Escolha uma das opùùes acima (1-8): ");
+            printf("Op??o inv?lida! Escolha uma das op??es acima (1-8): ");
     } while (opcao_int < 1 || opcao_int > 8);
 
     opcao_escolhida = (Opcao)opcao_int;
@@ -51,13 +51,13 @@ Opcao escolher_opcao()
 /**
  * @brief Altera a string formatando-a como xxxxxxxxxxxx + \0 + lixo
  *
- * @param cpf chave ùnica do paciente
+ * @param cpf chave ?nica do paciente
  */
 void formatar_cpf(char cpf[])
 {
     int tamanho = 0;
 
-    // Itera sobre os caracteres deslocando cada dùgito para esquerda de acordo com o nùmero de caracteres estranhos encontrados
+    // Itera sobre os caracteres deslocando cada d?gito para esquerda de acordo com o n?mero de caracteres estranhos encontrados
     for (int i = 0; cpf[i] != '\0'; i++)
     {
         printf("%c", cpf[i]);
@@ -72,10 +72,10 @@ void formatar_cpf(char cpf[])
 }
 
 /**
- * @brief formata o CPF e confere se ele ù vùlido, avisando o usuùrio caso contrùrio
+ * @brief formata o CPF e confere se ele ? v?lido, avisando o usu?rio caso contr?rio
  *
- * @param cpf chave ùnica do paciente
- * @return true se o CPF ù valido, false caso contrùrio
+ * @param cpf chave ?nica do paciente
+ * @return true se o CPF ? valido, false caso contr?rio
  */
 bool eh_cpf_valido(char cpf[])
 {
@@ -83,68 +83,68 @@ bool eh_cpf_valido(char cpf[])
 
     int digitos_iguais_ao_primeiro = 0;
 
-    // ù invùlido se hù caracteres estranhos na string
+    // ? inv?lido se h? caracteres estranhos na string
     for (int i = 0; i < 11; i++)
     {
         if (cpf[i] == cpf[0])
             digitos_iguais_ao_primeiro++;
         if (cpf[i] == '\0')
         {
-            printf("CPF invùlido! (Muito curto)");
+            printf("CPF inv?lido! (Muito curto)");
             return false;
         }
         else if (!isdigit(cpf[i]))
         {
-            printf("CPF invùlido! (Caracteres estranhos)");
+            printf("CPF inv?lido! (Caracteres estranhos)");
             return false;
         }
     }
 
     if (digitos_iguais_ao_primeiro == 11)
     {
-        printf("CPF invùlido! (Combinaùùo proibida)");
+        printf("CPF inv?lido! (Combina??o proibida)");
         return false;
     }
 
-    // Algoritmo da verificaùùo de CPF
+    // Algoritmo da verifica??o de CPF
     int soma = 0, dv[2];
 
-    // Primeiro dùgito verificador
+    // Primeiro d?gito verificador
     for (int i = 0; i < 9; i++)
         soma += (cpf[i] - '0') * (10 - i);
 
     dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
-    // Confere se o primeiro dùgito verificador fornecido ù o que deveria ser de acordo com o algoritmo
+    // Confere se o primeiro d?gito verificador fornecido ? o que deveria ser de acordo com o algoritmo
     if (cpf[9] - '0' != dv[0])
     {
-        printf("CPF invùlido! (Esse CPF nùo existe)");
+        printf("CPF inv?lido! (Esse CPF n?o existe)");
         return false;
     }
 
     soma = 0;
 
-    // Segundo dùgito verificador
+    // Segundo d?gito verificador
     for (int i = 0; i < 10; i++)
         soma += (cpf[i] - '0') * (11 - i);
 
     dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
-    // Confere se o segundo dùgito verificador fornecido ù o que deveria ser de acordo com o algoritmo
+    // Confere se o segundo d?gito verificador fornecido ? o que deveria ser de acordo com o algoritmo
     if (cpf[10] - '0' != dv[1])
     {
-        printf("CPF invùlido! (Esse CPF nùo existe)");
+        printf("CPF inv?lido! (Esse CPF n?o existe)");
         return false;
     }
 
-    // Se nùo falhar em nenhum teste, retorna verdadeiro
+    // Se n?o falhar em nenhum teste, retorna verdadeiro
     return true;
 }
 
 /**
- * @brief Pede que o usuùrio digite um CPF, aloca a string dinamicamente para recebe-lo e testa se ù vùlido
+ * @brief Pede que o usu?rio digite um CPF, aloca a string dinamicamente para recebe-lo e testa se ? v?lido
  *
- * @return um ponteiro para char de 15 posiùùes alocado dinamicamente se vùlido, NULL caso contrùrio
+ * @return um ponteiro para char de 15 posi??es alocado dinamicamente se v?lido, NULL caso contr?rio
  */
 char *cpf_ler()
 {
@@ -155,7 +155,7 @@ char *cpf_ler()
     if (cpf == NULL)
         return NULL;
 
-    // Mostra a instruùùo TODO:: Tambùm confere se ù valido, att a descriùùo
+    // Mostra a instru??o TODO:: Tamb?m confere se ? valido, att a descri??o
     printf("Digite o cpf: ");
     fgets(cpf, 16, stdin);
     cpf[14] = '\0';
@@ -167,15 +167,15 @@ char *cpf_ler()
         cpf = NULL;
     }
 
-    // printf("CPF vùlido.\n");
+    // printf("CPF v?lido.\n");
     return cpf;
 }
 
 /**
- * @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitarù
+ * @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitar?
  *
  * @param lista a lista de pacientes
- * @return o paciente com o CPF fornecido pelo cliente, NULL caso algo dù errado
+ * @return o paciente com o CPF fornecido pelo cliente, NULL caso algo d? errado
  */
 PACIENTE *paciente_ler(LISTA *lista)
 {
@@ -192,22 +192,25 @@ PACIENTE *paciente_ler(LISTA *lista)
 
 int main()
 {
-    setlocale(LC_ALL, "");
+    setlocale(LC_ALL, "pt_BR.UTF-8");
     LISTA *lista = lista_criar();
     FILA *fila = fila_criar();
 
+    printf("passei aqui.\n");
     if (!LOAD(&lista, &fila))
         return -1;
+
+    printf("passei aqui tbm.\n");
 
     char opcoes[][64] =
         {
             {"1. Registrar paciente"},
-            {"2. Registrar ùbito de paciente"},
-            {"3. Adicionar procedimento ao histùrico mùdico"},
-            {"4. Desfazer procedimento do histùrico mùdico"},
+            {"2. Registrar ?bito de paciente"},
+            {"3. Adicionar procedimento ao hist?rico m?dico"},
+            {"4. Desfazer procedimento do hist?rico m?dico"},
             {"5. Chamar paciente para atendimento"},
             {"6. Mostrar fila de espera"},
-            {"7. Mostrar histùrico do paciente"},
+            {"7. Mostrar hist?rico do paciente"},
             {"8. Sair"},
         };
 
@@ -219,10 +222,10 @@ int main()
         for (int i = 0; i < 8; i++)
             printf("%s\n", opcoes[i]);
 
-        printf("\n\nEscolha uma das opùùes acima: ");
+        printf("\n\nEscolha uma das op??es acima: ");
         opcao_escolhida = escolher_opcao();
 
-        printf("Vocù escolheu: %s\n\n", opcoes[opcao_escolhida - 1]);
+        printf("Voc? escolheu: %s\n\n", opcoes[opcao_escolhida - 1]);
 
         switch (opcao_escolhida)
         {
@@ -240,7 +243,7 @@ int main()
             printf("Buscou o paciente\n");
 
             if (paciente)
-                printf("Paciente jù cadastrado.\n");
+                printf("Paciente j? cadastrado.\n");
             else
             {
                 char nome[256];
@@ -257,7 +260,7 @@ int main()
             }
 
             if (fila_inserir(fila, paciente))
-                printf("Paciente adicionado ù fila com sucesso!\n");
+                printf("Paciente adicionado ? fila com sucesso!\n");
 
             free(cpf);
 
@@ -271,7 +274,7 @@ int main()
             {
                 if (fila_buscar(fila, paciente_obter_cpf(paciente)))
                 {
-                    printf("O paciente estù na fila de espera, ainda hù esperanùa!\n");
+                    printf("O paciente est? na fila de espera, ainda h? esperan?a!\n");
                     break;
                 }
                 paciente = lista_remover(lista, paciente);
@@ -280,7 +283,7 @@ int main()
                 printf("Registro do paciente removido de acordo com a LGPDb.\n");
             }
             else
-                printf("Paciente nùo encontrado!\n");
+                printf("Paciente n?o encontrado!\n");
 
             break;
         }
@@ -302,15 +305,15 @@ int main()
                 if (historico)
                 {
                     if (historico_inserir(historico, procedimento))
-                        printf("Procedimento adicionado ao histùrico do paciente.\n");
+                        printf("Procedimento adicionado ao hist?rico do paciente.\n");
                     else
-                        printf("O procedimento nùo pùde ser adicionado ao histùrico do paciente.\n");
+                        printf("O procedimento n?o p?de ser adicionado ao hist?rico do paciente.\n");
                 }
                 else
-                    printf("Falha ao obter o histùrico do paciente.\n");
+                    printf("Falha ao obter o hist?rico do paciente.\n");
             }
             else
-                printf("O paciente nùo foi encontrado.\n");
+                printf("O paciente n?o foi encontrado.\n");
 
             break;
         }
@@ -325,24 +328,24 @@ int main()
                 if (historico)
                 {
                     if (historico_vazio(historico))
-                        printf("O histùrico do paciente estù vazio.\n");
+                        printf("O hist?rico do paciente est? vazio.\n");
                     else
                     {
                         char *procedimento = historico_remover(historico);
                         if (procedimento)
                         {
-                            printf("O seguinte procedimento retirado do histùrico do paciente:\n%s\n", procedimento);
+                            printf("O seguinte procedimento retirado do hist?rico do paciente:\n%s\n", procedimento);
                             free(procedimento);
                         }
                         else
-                            printf("O ùltimo procedimento nùo pùde ser removido do histùrico do paciente.\n");
+                            printf("O ?ltimo procedimento n?o p?de ser removido do hist?rico do paciente.\n");
                     }
                 }
                 else
-                    printf("Falha ao obter o histùrico do paciente.\n");
+                    printf("Falha ao obter o hist?rico do paciente.\n");
             }
             else
-                printf("O paciente nùo foi encontrado.\n");
+                printf("O paciente n?o foi encontrado.\n");
 
             break;
         }
@@ -350,16 +353,16 @@ int main()
         {
             if (fila_vazia(fila))
             {
-                printf("A fila estù vazia.\n");
+                printf("A fila est? vazia.\n");
                 break;
             }
 
             PACIENTE *paciente = fila_remover(fila);
 
             if (paciente)
-                printf("O paciente %s ù o prùximo a ser atendido.\n", paciente_obter_nome(paciente));
+                printf("O paciente %s ? o pr?ximo a ser atendido.\n", paciente_obter_nome(paciente));
             else
-                printf("O paciente nùo foi encontrado.\n");
+                printf("O paciente n?o foi encontrado.\n");
 
             break;
         }
@@ -380,10 +383,10 @@ int main()
                 if (historico)
                     historico_imprimir(historico);
                 else
-                    printf("Falha ao obter o histùrico do paciente.\n");
+                    printf("Falha ao obter o hist?rico do paciente.\n");
             }
             else
-                printf("O paciente nùo foi encontrado.\n");
+                printf("O paciente n?o foi encontrado.\n");
 
             break;
         }
@@ -395,6 +398,8 @@ int main()
     } while (opcao_escolhida != SAIR);
 
     SAVE(&lista, &fila);
+    fila_apagar(&fila);
+    lista_apagar(&lista);
     
     return 0;
 }
