@@ -57,7 +57,7 @@ void formatar_cpf(char cpf[])
   // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
   for (int i = 0; cpf[i] != '\0'; i++)
   {
-    printf("%c", cpf[i]);
+    // printf("%c", cpf[i]);
     if (isdigit(cpf[i]))
     {
       cpf[tamanho] = cpf[i];
@@ -219,11 +219,11 @@ int main()
     
         if (cpf == NULL) break;
 
-        printf("CPF deu certo\n");
+        // printf("CPF deu certo\n");
 
         PACIENTE* paciente = lista_buscar(lista, cpf);
 
-        printf("Buscou o paciente\n");
+        // printf("Buscou o paciente\n");
 
         if (paciente) printf("Paciente já cadastrado.\n");
         else
@@ -366,9 +366,9 @@ int main()
 
   SAVE(&lista, &fila);
 
-  printf("A fila é NULL dps do save? %d\n", fila == NULL);
+  // printf("A fila é NULL dps do save? %d\n", fila == NULL);
 
   lista_apagar(&lista);
-  printf("Apagou a lista no main\n");
+  // printf("Apagou a lista no main\n");
   fila_apagar(&fila);
 }
