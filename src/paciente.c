@@ -14,11 +14,12 @@ PACIENTE* paciente_criar(char nome[], char cpf[]){
     PACIENTE* p = (PACIENTE*)malloc(sizeof(PACIENTE));
     if (p == NULL) return NULL;
 
+    //Inicializa as variaveis do TAD
     p->nome = NULL;
     p->cpf = NULL;
     p->hist = NULL;
 
-    // 2. Aloca memória para o nome e copia
+    //Aloca memória para o nome e copia
     p->nome = (char*)malloc(strlen(nome) + 1);
     if (p->nome == NULL) {
         paciente_apagar(&p);
@@ -26,7 +27,7 @@ PACIENTE* paciente_criar(char nome[], char cpf[]){
     }
     strcpy(p->nome, nome);
 
-    // 3. Aloca memória para o CPF e copia 
+    //Aloca memória para o CPF e copia 
     p->cpf = (char*)malloc(strlen(cpf) + 1);
     if (p->cpf == NULL) {
         paciente_apagar(&p);
@@ -34,7 +35,7 @@ PACIENTE* paciente_criar(char nome[], char cpf[]){
     }
     strcpy(p->cpf, cpf);
 
-    // 4. Cria o histórico
+    //Cria o histórico
     p->hist = historico_criar();
     if (p->hist == NULL) {
         paciente_apagar(&p);
@@ -45,10 +46,7 @@ PACIENTE* paciente_criar(char nome[], char cpf[]){
 }
 
 bool paciente_apagar(PACIENTE** paciente){
-    // printf("Paciente apagar\n");
     if (paciente != NULL && (*paciente) != NULL){
-        // printf("Paciente apagar e não é nulo\n");
-        // printf("Histórico do paciente é NULL? %d\n", (*paciente)->hist == NULL);
         historico_apagar((&(*paciente)->hist));
         free((*paciente)->nome);
         free(*paciente);
