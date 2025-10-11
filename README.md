@@ -66,7 +66,7 @@ Este projeto utiliza um **Makefile** que detecta automaticamente o sistema opera
 Antes de compilar, verifique se você possui:
 - **GCC** (compilador C) instalado  
 - **Make** disponível no terminal  
-- (Opcional) Pasta `data/` criada no diretório do projeto para os arquivos binários.
+- Pasta `data/` criada no diretório do projeto para os arquivos binários.
 
 ---
 
