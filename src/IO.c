@@ -14,7 +14,7 @@ bool SAVE(LISTA **lista, FILA **fila)
 
   // Salvando os itens da fila
 
-  FILE *fp_fila = fopen("fila_itens.bin", "wb");
+  FILE *fp_fila = fopen("data\\fila_itens.bin", "wb");
   if (!fp_fila) return false;
 
   // Se mantém no while enquanto a fila não estiver vazia
@@ -43,7 +43,7 @@ bool SAVE(LISTA **lista, FILA **fila)
 
   // Salvando os itens da lista
 
-  FILE *fp_lista = fopen("lista_itens.bin", "wb");
+  FILE *fp_lista = fopen("data\\lista_itens.bin", "wb");
 
   if(!fp_lista) return false;
 
@@ -73,7 +73,7 @@ bool LOAD(LISTA **lista, FILA **fila)
 
   // Carregando os itens do arquivo na lista
 
-  FILE *fp_lista = fopen("lista_itens.bin", "rb");
+  FILE *fp_lista = fopen("data\\lista_itens.bin", "rb");
 
   if (!fp_lista) return false;
 
@@ -96,7 +96,7 @@ bool LOAD(LISTA **lista, FILA **fila)
 
   // Carregando os itens do arquivo na fila
 
-  FILE *fp_fila = fopen("fila_itens.bin", "rb");
+  FILE *fp_fila = fopen("data\\fila_itens.bin", "rb");
 
   if (!fp_fila) return false;
 
