@@ -1,4 +1,5 @@
 #include "../include/historico.h"
+#include <stdio.h>
 #define TAM_MAX 10
 
 typedef struct no_ NO;
@@ -28,7 +29,7 @@ bool historico_inserir(HISTORICO* hist, char procedimento[]){
     if (hist != NULL && !historico_cheio(hist)){
         NO* novo = (NO* )malloc(sizeof(NO));
         if (novo != NULL){
-            strcpy(novo->procedimento, procedimento);
+            snprintf(novo->procedimento, 100, "%s", procedimento);
             novo->anterior = hist->topo;
             hist->topo = novo;
             hist->tamanho++;
@@ -72,9 +73,17 @@ bool historico_cheio(HISTORICO* hist){
     }
     return false;
 }
+
 bool historico_vazio(HISTORICO* hist){
     if (hist != NULL){
         return hist->tamanho == 0;
+    }
+    return false;
+}
+
+int historico_tamanho(HISTORICO* hist){
+    if (hist != NULL){
+        return hist->tamanho;
     }
     return false;
 }

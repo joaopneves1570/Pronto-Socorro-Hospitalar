@@ -14,6 +14,7 @@
     bool historico_consultar(HISTORICO* hist, char* texto);
     bool historico_cheio(HISTORICO* hist);
     bool historico_vazio(HISTORICO* hist);
+    int historico_tamanho(HISTORICO* hist);
     void historico_apagar(HISTORICO** hist);
     void historico_imprimir(HISTORICO* hist);
 

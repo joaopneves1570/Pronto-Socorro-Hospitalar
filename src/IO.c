@@ -9,7 +9,8 @@ bool SAVE(LISTA **lista, FILA **fila)
   if (!lista || !(*lista) || !fila || !*(fila)) return false;
   
   PACIENTE* paciente; // Variável auxiliar 
-  char cpf[12];
+  char* str_paciente;
+  int tamanho_str_paciente;
 
   // Salvando os itens da fila
 
@@ -19,21 +20,25 @@ bool SAVE(LISTA **lista, FILA **fila)
   // Se mantém no while enquanto a fila não estiver vazia
   while((paciente = fila_remover(*fila)))
   {
-    printf("Oieeee\n");
+    str_paciente = paciente_para_string(paciente, &tamanho_str_paciente);
+
+    // printf("Oieeee\n");
     // Escreve a chave no arquivo
-    strcpy(cpf, paciente_obter_cpf(paciente));
-    printf("strcpy\n");
-    fwrite(cpf, sizeof(char), 12, fp_fila);
-    printf("fwrite\n");
+    fwrite(&tamanho_str_paciente, sizeof(int), 1, fp_fila);
+    fwrite(str_paciente, sizeof(char), tamanho_str_paciente, fp_fila);
+    // printf("fwrite\n");
+
+    free(str_paciente);
+    str_paciente = NULL;
   }
 
-  printf("Passou do while\n");
+  // printf("Passou do while\n");
 
-  printf("Fechou o arquivo\n");
+  // printf("Fechou o arquivo\n");
   fclose(fp_fila); fp_fila = NULL;
   // Libera memória
-  printf("Apagou a fila\n");
-  printf("A fila é NULL? %d\n", fila == NULL);
+  // printf("Apagou a fila\n");
+  // printf("A fila é NULL? %d\n", fila == NULL);
   fila_apagar(fila);
 
   // Salvando os itens da lista
@@ -45,11 +50,15 @@ bool SAVE(LISTA **lista, FILA **fila)
   // Se mantém no while enquanto a lista não estiver vazia
   while((paciente = lista_remover_inicio(*lista)))
   {
+    str_paciente = paciente_para_string(paciente, &tamanho_str_paciente);
     // Escreve a chave no arquivo
-    strcpy(cpf, paciente_obter_cpf(paciente));
-    fwrite(cpf, sizeof(char), 12, fp_lista);
+    fwrite(&tamanho_str_paciente, sizeof(int), 1, fp_lista);
+    fwrite(str_paciente, sizeof(char), tamanho_str_paciente, fp_lista);
     // Apaga o item removido
     paciente_apagar(&paciente);
+
+    free(str_paciente);
+    str_paciente = NULL;
   }
   // Libera memória
   fclose(fp_lista); fp_lista = NULL;
@@ -62,20 +71,25 @@ bool LOAD(LISTA **lista, FILA **fila)
 {
   if (!*lista || !*fila) return false;
 
-  char cpf[12]; // Variável auxiliar
-
   // Carregando os itens do arquivo na lista
 
   FILE *fp_lista = fopen("lista_itens.bin", "rb");
 
   if (!fp_lista) return false;
 
+  int tamanho_str_paciente;
+
   // Lê as chaves até o fim do arquivo
-  while(fread(cpf, sizeof(char) * 12, 1, fp_lista) == 1)
+  while(fread(&tamanho_str_paciente, sizeof(int), 1, fp_lista) == 1)
   {
-    cpf[11] = '\0';
-    PACIENTE* paciente = paciente_criar("", cpf);
+    char* buffer = calloc(tamanho_str_paciente + 1, sizeof(char));
+    // Lê o BLOCO DE DADOS para o buffer
+    fread(buffer, sizeof(char), tamanho_str_paciente, fp_lista);
+
+    PACIENTE* paciente = paciente_de_string(buffer);
     lista_inserir(*lista, paciente);
+
+    free(buffer);
   }
 
   fclose(fp_lista); // Libera memória
@@ -87,11 +101,16 @@ bool LOAD(LISTA **lista, FILA **fila)
   if (!fp_fila) return false;
 
   // Lê as chaves até o fim do arquivo
-  while(fread(cpf, sizeof(char) * 12, 1, fp_fila) == 1)
+  while(fread(&tamanho_str_paciente, sizeof(int), 1, fp_fila) == 1)
   {
-    cpf[11] = '\0';
-    PACIENTE* paciente = paciente_criar("", cpf);
+    char* buffer = calloc(tamanho_str_paciente + 1, sizeof(char));
+    // Lê o BLOCO DE DADOS para o buffer
+    fread(buffer, sizeof(char), tamanho_str_paciente, fp_fila);
+
+    PACIENTE* paciente = paciente_de_string(buffer);
     fila_inserir(*fila, paciente);
+
+    free(buffer);
   }
 
   fclose(fp_fila); // Libera memória
