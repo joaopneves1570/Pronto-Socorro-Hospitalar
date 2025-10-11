@@ -10,365 +10,390 @@
 // Opções do menu principal
 typedef enum
 {
-  REGISTRAR_PACIENTE = 1,
-  REGISTRAR_OBITO_DE_PACIENTE = 2,
-  ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO = 3,
-  DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO = 4,
-  CHAMAR_PACIENTE_PARA_ATENDIMENTO = 5,
-  MOSTRAR_LISTA_DE_ESPERA = 6,
-  MOSTRAR_HISTORICO_DO_PACIENTE = 7,
-  SAIR = 8,
+    REGISTRAR_PACIENTE = 1,
+    REGISTRAR_OBITO_DE_PACIENTE = 2,
+    ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO = 3,
+    DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO = 4,
+    CHAMAR_PACIENTE_PARA_ATENDIMENTO = 5,
+    MOSTRAR_LISTA_DE_ESPERA = 6,
+    MOSTRAR_HISTORICO_DO_PACIENTE = 7,
+    SAIR = 8,
 } Opcao;
 
 /**
-* @brief Lê o input do usuário, repetindo e avisando caso for inválido
-*
-* @return a enum correspondente à opção escolhida
-*/
+ * @brief Lê o input do usuário, repetindo e avisando caso for inválido
+ *
+ * @return a enum correspondente à opção escolhida
+ */
 Opcao escolher_opcao()
 {
-  Opcao opcao_escolhida;
+    int opcao_escolhida;
+    Opcao opcao_escolhida_;
 
-  // Repete a tentativa de escolha até uma escolha válida
-  do
-  {
-    scanf("%d", &opcao_escolhida);
-    getchar();
+    // Repete a tentativa de escolha até uma escolha válida
+    do
+    {
+        scanf("%d", &opcao_escolhida);
+        getchar();
 
-    printf("\n");
+        printf("\n");
 
-    // Confere se a opção escolhida pelo usuário está no intervalo válido
-    if (opcao_escolhida < 1 || opcao_escolhida > 8) printf("Opção inválida! Escolha uma das opções acima (1-8): ");
-  }
-  while (opcao_escolhida < 1 || opcao_escolhida > 8);
+        // Confere se a opção escolhida pelo usuário está no intervalo válido
+        if (opcao_escolhida < 1 || opcao_escolhida > 8)
+            printf("Opção inválida! Escolha uma das opções acima (1-8): ");
+    } while (opcao_escolhida < 1 || opcao_escolhida > 8);
 
-  return opcao_escolhida;
+    opcao_escolhida_ = (Opcao)opcao_escolhida;
+    return opcao_escolhida_;
 }
 
 /**
-* @brief Altera a string formatando-a como xxxxxxxxxxxx + \0 + lixo
-*
-* @param cpf chave única do paciente
-*/
+ * @brief Altera a string formatando-a como xxxxxxxxxxxx + \0 + lixo
+ *
+ * @param cpf chave única do paciente
+ */
 void formatar_cpf(char cpf[])
 {
-  int tamanho = 0;
+    int tamanho = 0;
 
-  // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
-  for (int i = 0; cpf[i] != '\0'; i++)
-  {
-    // printf("%c", cpf[i]);
-    if (isdigit(cpf[i]))
+    // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
+    for (int i = 0; cpf[i] != '\0'; i++)
     {
-      cpf[tamanho] = cpf[i];
-      tamanho++;
+        // printf("%c", cpf[i]);
+        if (isdigit(cpf[i]))
+        {
+            cpf[tamanho] = cpf[i];
+            tamanho++;
+        }
     }
-  }
 
-  cpf[tamanho] = '\0';
+    cpf[tamanho] = '\0';
 }
 
 /**
-* @brief formata o CPF e confere se ele é válido, avisando o usuário caso contrário
-*
-* @param cpf chave única do paciente
-* @return true se o CPF é valido, false caso contrário
-*/
+ * @brief formata o CPF e confere se ele é válido, avisando o usuário caso contrário
+ *
+ * @param cpf chave única do paciente
+ * @return true se o CPF é valido, false caso contrário
+ */
 bool eh_cpf_valido(char cpf[])
 {
-  formatar_cpf(cpf);
+    formatar_cpf(cpf);
 
-  int digitos_iguais_ao_primeiro = 0;
+    int digitos_iguais_ao_primeiro = 0;
 
-  // É inválido se há caracteres estranhos na string
-  for (int i = 0; i < 11; i++)
-  {
-    if (cpf[i] == cpf[0]) digitos_iguais_ao_primeiro++;
-    if (cpf[i] == '\0')
+    // É inválido se há caracteres estranhos na string
+    for (int i = 0; i < 11; i++)
     {
-      printf("CPF inválido! (Muito curto)");
-      return false;
+        if (cpf[i] == cpf[0])
+            digitos_iguais_ao_primeiro++;
+        if (cpf[i] == '\0')
+        {
+            printf("CPF inválido! (Muito curto)");
+            return false;
+        }
+        else if (!isdigit(cpf[i]))
+        {
+            printf("CPF inválido! (Caracteres estranhos)");
+            return false;
+        }
     }
-    else if (!isdigit(cpf[i]))
+
+    if (digitos_iguais_ao_primeiro == 11)
     {
-      printf("CPF inválido! (Caracteres estranhos)");
-      return false;
+        printf("CPF inválido! (Combinação proibida)");
+        return false;
     }
-  }
 
-  if (digitos_iguais_ao_primeiro == 11)
-  {
-    printf("CPF inválido! (Combinação proibida)");
-    return false;
-  }
+    // Algoritmo da verificação de CPF
+    int soma = 0, dv[2];
 
-  // Algoritmo da verificação de CPF
-  int soma = 0, dv[2];
+    // Primeiro dígito verificador
+    for (int i = 0; i < 9; i++)
+        soma += (cpf[i] - '0') * (10 - i);
 
-  // Primeiro dígito verificador
-  for (int i = 0; i < 9; i++) soma += (cpf[i] - '0') * (10 - i);
+    dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
-  dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
+    // Confere se o primeiro dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
+    if (cpf[9] - '0' != dv[0])
+    {
+        printf("CPF inválido! (Esse CPF não existe)");
+        return false;
+    }
 
-  // Confere se o primeiro dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-  if (cpf[9] - '0' != dv[0])
-  {
-    printf("CPF inválido! (Esse CPF não existe)");
-    return false;
-  }
+    soma = 0;
 
-  soma = 0;
+    // Segundo dígito verificador
+    for (int i = 0; i < 10; i++)
+        soma += (cpf[i] - '0') * (11 - i);
 
-  // Segundo dígito verificador
-  for (int i = 0; i < 10; i++) soma += (cpf[i] - '0') * (11 - i);
+    dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
 
-  dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
-  
-  // Confere se o segundo dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-  if (cpf[10] - '0' != dv[1])
-  {
-    printf("CPF inválido! (Esse CPF não existe)");
-    return false;
-  }
+    // Confere se o segundo dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
+    if (cpf[10] - '0' != dv[1])
+    {
+        printf("CPF inválido! (Esse CPF não existe)");
+        return false;
+    }
 
-  // Se não falhar em nenhum teste, retorna verdadeiro
-  return true;
+    // Se não falhar em nenhum teste, retorna verdadeiro
+    return true;
 }
 
 /**
-* @brief Pede que o usuário digite um CPF, aloca a string dinamicamente para recebe-lo e testa se é válido
-*
-* @return um ponteiro para char de 15 posições alocado dinamicamente se válido, NULL caso contrário
-*/ 
-char* cpf_ler()
+ * @brief Pede que o usuário digite um CPF, aloca a string dinamicamente para recebe-lo e testa se é válido
+ *
+ * @return um ponteiro para char de 15 posições alocado dinamicamente se válido, NULL caso contrário
+ */
+char *cpf_ler()
 {
-  // Tenta alocar o string
-  char* cpf = calloc(16, sizeof(char));
+    // Tenta alocar o string
+    char *cpf = calloc(16, sizeof(char));
 
-  // Se falhar retorna um ponteiro nulo
-  if (cpf == NULL) return NULL;
+    // Se falhar retorna um ponteiro nulo
+    if (cpf == NULL)
+        return NULL;
 
-  // Mostra a instrução TODO:: Também confere se é valido, att a descrição
-  printf("Digite o cpf: ");
-  fgets(cpf, 16, stdin);
-  cpf[14] = '\0';
-  printf("\n");
+    // Mostra a instrução TODO:: Também confere se é valido, att a descrição
+    printf("Digite o cpf: ");
+    fgets(cpf, 16, stdin);
+    cpf[14] = '\0';
+    printf("\n");
 
-  if (!eh_cpf_valido(cpf))
-  {
+    if (!eh_cpf_valido(cpf))
+    {
+        free(cpf);
+        cpf = NULL;
+    }
+
+    // printf("CPF válido.\n");
+    return cpf;
+}
+
+/**
+ * @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitará
+ *
+ * @param lista a lista de pacientes
+ * @return o paciente com o CPF fornecido pelo cliente, NULL caso algo dê errado
+ */
+PACIENTE *paciente_ler(LISTA *lista)
+{
+    PACIENTE *paciente = NULL;
+    char *cpf = cpf_ler();
+
+    if (cpf)
+        paciente = lista_buscar(lista, cpf);
+
     free(cpf);
-    cpf = NULL;
-  }
 
-  //printf("CPF válido.\n");
-  return cpf;
-}
-
-/**
-* @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitará
-*
-* @param lista a lista de pacientes
-* @return o paciente com o CPF fornecido pelo cliente, NULL caso algo dê errado
-*/
-PACIENTE* paciente_ler(LISTA* lista)
-{
-  PACIENTE* paciente = NULL;
-  char* cpf = cpf_ler();
-
-  if (cpf) paciente = lista_buscar(lista, cpf);
-
-  free(cpf);
-
-  return paciente;
+    return paciente;
 }
 
 int main()
 {
-  LISTA* lista = lista_criar();
-  FILA* fila = fila_criar();
+    LISTA *lista = lista_criar();
+    FILA *fila = fila_criar();
 
-  if (!LOAD(&lista, &fila)) return -1;
+    if (!LOAD(&lista, &fila))
+        return -1;
 
-  char opcoes[][64] =
+    char opcoes[][64] =
+        {
+            {"1. Registrar paciente"},
+            {"2. Registrar óbito de paciente"},
+            {"3. Adicionar procedimento ao histórico médico"},
+            {"4. Desfazer procedimento do histórico médico"},
+            {"5. Chamar paciente para atendimento"},
+            {"6. Mostrar fila de espera"},
+            {"7. Mostrar histórico do paciente"},
+            {"8. Sair"},
+        };
+
+    Opcao opcao_escolhida;
+
+    do
     {
-      {"1. Registrar paciente"},
-      {"2. Registrar óbito de paciente"},
-      {"3. Adicionar procedimento ao histórico médico"},
-      {"4. Desfazer procedimento do histórico médico"},
-      {"5. Chamar paciente para atendimento"},
-      {"6. Mostrar fila de espera"},
-      {"7. Mostrar histórico do paciente"},
-      {"8. Sair"},
-    };
+        for (int i = 0; i < 8; i++)
+            printf("%s\n", opcoes[i]);
+        printf("\nEscolha uma das opções acima: ");
+        opcao_escolhida = escolher_opcao();
 
-  Opcao opcao_escolhida;
+        printf("Você escolheu: %s\n\n", opcoes[opcao_escolhida - 1]);
 
-  do
-  {
-    for (int i = 0; i < 8; i++) printf("%s\n", opcoes[i]);
-    printf("\nEscolha uma das opções acima: ");
-    opcao_escolhida = escolher_opcao();
-
-    printf("Você escolheu: %s\n\n", opcoes[opcao_escolhida - 1]);
-
-    switch (opcao_escolhida)
-    {
-      case REGISTRAR_PACIENTE:
-      {
-        char* cpf = cpf_ler();
-    
-        if (cpf == NULL) break;
-
-        // printf("CPF deu certo\n");
-
-        PACIENTE* paciente = lista_buscar(lista, cpf);
-
-        // printf("Buscou o paciente\n");
-
-        if (paciente) printf("Paciente já cadastrado.\n");
-        else
+        switch (opcao_escolhida)
         {
-          char nome[256];
-
-          printf("Digite o nome do paciente: ");
-          fgets(nome, sizeof(nome), stdin);
-          nome[strcspn(nome, "\n")] = '\0';
-          printf("\n");
-
-          paciente = paciente_criar(nome, cpf);
-
-          lista_inserir(lista, paciente);
-          printf("Paciente cadastrado com sucesso!\n");
-        }
-
-        if (fila_inserir(fila, paciente)) printf("Paciente adicionado à fila com sucesso!\n");
-
-        free(cpf);
-
-        break;
-      }
-      case REGISTRAR_OBITO_DE_PACIENTE:
-      {
-        PACIENTE* paciente = paciente_ler(lista);
-
-        if (paciente)
+        case REGISTRAR_PACIENTE:
         {
-          if (fila_buscar(fila, paciente_obter_cpf(paciente)))
-          {
-            printf("O paciente está na fila de espera, ainda há esperança!\n");
-            break;
-          }
-          paciente = lista_remover(lista, paciente);
-          paciente_apagar(&paciente);
-          
-          printf("Registro do paciente removido de acordo com a LGPDb.\n");
-        }
-        else printf("Paciente não encontrado!\n");
+            char *cpf = cpf_ler();
 
-        break;
-      }
-      case ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO:
-      {
-        PACIENTE* paciente = paciente_ler(lista);
+            if (cpf == NULL)
+                break;
 
-        if (paciente)
-        {
-          char procedimento[256];
+            // printf("CPF deu certo\n");
 
-          printf("Escreva o procedimento: ");
-          fgets(procedimento, sizeof(procedimento), stdin);
-          procedimento[strcspn(procedimento, "\n")] = '\0';
-          printf("\n");
+            PACIENTE *paciente = lista_buscar(lista, cpf);
 
-          HISTORICO* historico = paciente_obter_historico(paciente);
+            // printf("Buscou o paciente\n");
 
-          if (historico)
-          {
-            if (historico_inserir(historico, procedimento)) printf("Procedimento adicionado ao histórico do paciente.\n");
-            else printf("O procedimento não pôde ser adicionado ao histórico do paciente.\n");
-          }
-          else printf("Falha ao obter o histórico do paciente.\n");
-        }
-        else printf("O paciente não foi encontrado.\n");
-
-        break;
-      }
-      case DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO:
-      {
-        PACIENTE* paciente = paciente_ler(lista);
-
-        if (paciente)
-        {
-          HISTORICO* historico = paciente_obter_historico(paciente);
-
-          if (historico)
-          {
-            if (historico_vazio(historico)) printf("O histórico do paciente está vazio.\n");
+            if (paciente)
+                printf("Paciente já cadastrado.\n");
             else
             {
-              char* procedimento = historico_remover(historico);
-              if (procedimento)
-              {
-                printf("O seguinte procedimento retirado do histórico do paciente:\n%s\n", procedimento);
-                free(procedimento);
-              }
-              else printf("O último procedimento não pôde ser removido do histórico do paciente.\n");
+                char nome[256];
+
+                printf("Digite o nome do paciente: ");
+                fgets(nome, sizeof(nome), stdin);
+                nome[strcspn(nome, "\n")] = '\0';
+                printf("\n");
+
+                paciente = paciente_criar(nome, cpf);
+
+                lista_inserir(lista, paciente);
+                printf("Paciente cadastrado com sucesso!\n");
             }
-          }
-          else printf("Falha ao obter o histórico do paciente.\n");
-        }
-        else printf("O paciente não foi encontrado.\n");
 
-        break;
-      }
-      case CHAMAR_PACIENTE_PARA_ATENDIMENTO:
-      {
-        if (fila_vazia(fila))
+            if (fila_inserir(fila, paciente))
+                printf("Paciente adicionado à fila com sucesso!\n");
+
+            free(cpf);
+
+            break;
+        }
+        case REGISTRAR_OBITO_DE_PACIENTE:
         {
-          printf("A fila está vazia.\n");
-          break;
+            PACIENTE *paciente = paciente_ler(lista);
+
+            if (paciente)
+            {
+                if (fila_buscar(fila, paciente_obter_cpf(paciente)))
+                {
+                    printf("O paciente está na fila de espera, ainda há esperança!\n");
+                    break;
+                }
+                paciente = lista_remover(lista, paciente);
+                paciente_apagar(&paciente);
+
+                printf("Registro do paciente removido de acordo com a LGPDb.\n");
+            }
+            else
+                printf("Paciente não encontrado!\n");
+
+            break;
         }
-
-        PACIENTE* paciente = fila_remover(fila);
-
-        if (paciente) printf("O paciente %s é o próximo a ser atendido.\n", paciente_obter_nome(paciente));
-        else printf("O paciente não foi encontrado.\n");
-
-        break;
-      
-
-      case MOSTRAR_LISTA_DE_ESPERA:
-        fila_imprimir(fila);
-
-        break;
-      }
-      case MOSTRAR_HISTORICO_DO_PACIENTE:
-      {
-        PACIENTE* paciente = paciente_ler(lista);
-
-        if (paciente)
+        case ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO:
         {
-          HISTORICO* historico = paciente_obter_historico(paciente);
+            PACIENTE *paciente = paciente_ler(lista);
 
-          if (historico) historico_imprimir(historico);
-          else printf("Falha ao obter o histórico do paciente.\n");
+            if (paciente)
+            {
+                char procedimento[256];
+
+                printf("Escreva o procedimento: ");
+                fgets(procedimento, sizeof(procedimento), stdin);
+                procedimento[strcspn(procedimento, "\n")] = '\0';
+                printf("\n");
+
+                HISTORICO *historico = paciente_obter_historico(paciente);
+
+                if (historico)
+                {
+                    if (historico_inserir(historico, procedimento))
+                        printf("Procedimento adicionado ao histórico do paciente.\n");
+                    else
+                        printf("O procedimento não pôde ser adicionado ao histórico do paciente.\n");
+                }
+                else
+                    printf("Falha ao obter o histórico do paciente.\n");
+            }
+            else
+                printf("O paciente não foi encontrado.\n");
+
+            break;
         }
-        else printf("O paciente não foi encontrado.\n");
+        case DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO:
+        {
+            PACIENTE *paciente = paciente_ler(lista);
 
-        break;
-      }
-      case SAIR: break;
-    }
+            if (paciente)
+            {
+                HISTORICO *historico = paciente_obter_historico(paciente);
 
-    printf("\n");
-  }
-  while (opcao_escolhida != SAIR);
+                if (historico)
+                {
+                    if (historico_vazio(historico))
+                        printf("O histórico do paciente está vazio.\n");
+                    else
+                    {
+                        char *procedimento = historico_remover(historico);
+                        if (procedimento)
+                        {
+                            printf("O seguinte procedimento retirado do histórico do paciente:\n%s\n", procedimento);
+                            free(procedimento);
+                        }
+                        else
+                            printf("O último procedimento não pôde ser removido do histórico do paciente.\n");
+                    }
+                }
+                else
+                    printf("Falha ao obter o histórico do paciente.\n");
+            }
+            else
+                printf("O paciente não foi encontrado.\n");
 
-  SAVE(&lista, &fila);
+            break;
+        }
+        case CHAMAR_PACIENTE_PARA_ATENDIMENTO:
+        {
+            if (fila_vazia(fila))
+            {
+                printf("A fila está vazia.\n");
+                break;
+            }
 
-  // printf("A fila é NULL dps do save? %d\n", fila == NULL);
+            PACIENTE *paciente = fila_remover(fila);
 
-  lista_apagar(&lista);
-  // printf("Apagou a lista no main\n");
-  fila_apagar(&fila);
+            if (paciente)
+                printf("O paciente %s é o próximo a ser atendido.\n", paciente_obter_nome(paciente));
+            else
+                printf("O paciente não foi encontrado.\n");
+
+            break;
+
+        case MOSTRAR_LISTA_DE_ESPERA:
+            fila_imprimir(fila);
+
+            break;
+        }
+        case MOSTRAR_HISTORICO_DO_PACIENTE:
+        {
+            PACIENTE *paciente = paciente_ler(lista);
+
+            if (paciente)
+            {
+                HISTORICO *historico = paciente_obter_historico(paciente);
+
+                if (historico)
+                    historico_imprimir(historico);
+                else
+                    printf("Falha ao obter o histórico do paciente.\n");
+            }
+            else
+                printf("O paciente não foi encontrado.\n");
+
+            break;
+        }
+        case SAIR:
+            break;
+        }
+
+        printf("\n");
+    } while (opcao_escolhida != SAIR);
+
+    SAVE(&lista, &fila);
+
+    // printf("A fila é NULL dps do save? %d\n", fila == NULL);
+
+    lista_apagar(&lista);
+    // printf("Apagou a lista no main\n");
+    fila_apagar(&fila);
 }
