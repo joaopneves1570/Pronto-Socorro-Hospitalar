@@ -1,4 +1,4 @@
-#include "lista.h"
+#include "../include/lista.h"
 
 typedef struct no_ NO;
 struct no_{
@@ -75,9 +75,9 @@ NO* rodar_esquerda_direita(NO* a){
     return rodar_direita(a);
 }
 
-bool lista_inserir_no(NO* raiz, PACIENTE* p){
+NO* lista_inserir_no(NO* raiz, PACIENTE* p){
     if (raiz == NULL)
-        raiz = lista_cria_no(raiz);
+        raiz = lista_cria_no(p);
     
     long int chave_item = atol(paciente_obter_cpf(p));
     long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
@@ -136,7 +136,7 @@ void troca_max_esq(NO* atual, NO* raiz, NO* ant, PACIENTE** pac){
     
 }
 
-PACIENTE* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
+NO* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
     NO* p;
     long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
 
@@ -244,6 +244,7 @@ NO* lista_buscar_no(NO* raiz, long int cpf, PACIENTE** p){
         return lista_buscar_no(raiz->esq, cpf, p);
     else if (cpf > cpf_raiz)
         return lista_buscar_no(raiz->dir, cpf, p);
+    
 }
 
 PACIENTE* lista_buscar(LISTA* l, char* cpf){
