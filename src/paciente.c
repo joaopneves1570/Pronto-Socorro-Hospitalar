@@ -1,8 +1,6 @@
 #include "../include/paciente.h"
-#include "../include/senha.h"
 
 #include <math.h>
-#include <stdio.h>
 
 /**
  * @brief Estrutura que representa um paciente.
@@ -24,7 +22,7 @@ struct paciente_
  * @param cpf String contendo o CPF do paciente.
  * @return Ponteiro para a estrutura PACIENTE alocada ou NULL em caso de erro de alocação.
  */
-PACIENTE *paciente_criar(char nome[], char cpf[], char prioridade[], unsigned int posicao)
+PACIENTE *paciente_criar(char nome[], char cpf[], SENHA* senha)
 {
   PACIENTE *paciente = (PACIENTE *)malloc(sizeof(PACIENTE));
   if (paciente == NULL) return NULL;
@@ -47,13 +45,7 @@ PACIENTE *paciente_criar(char nome[], char cpf[], char prioridade[], unsigned in
   }
   strcpy(paciente->cpf, cpf);
 
-  // Cria a senha
-  paciente->senha = senha_criar(prioridade, posicao);
-  if (paciente->senha == NULL)
-  {
-    paciente_apagar(&paciente);
-    return NULL;
-  }
+  paciente->senha = senha;
 
   return paciente;
 }
@@ -87,12 +79,7 @@ bool paciente_apagar(PACIENTE **paciente)
  */
 char *paciente_obter_nome(PACIENTE *paciente)
 {
-  if (paciente != NULL)
-  {
-    return paciente->nome;
-  }
-
-  return NULL;
+  return paciente != NULL ? paciente->nome : NULL;
 }
 
 /**
@@ -102,12 +89,12 @@ char *paciente_obter_nome(PACIENTE *paciente)
  */
 char *paciente_obter_cpf(PACIENTE *paciente)
 {
-  if (paciente != NULL)
-  {
-    return paciente->cpf;
-  }
+  return paciente != NULL ? paciente->cpf : NULL;
+}
 
-  return NULL;
+SENHA* paciente_obter_senha(PACIENTE *paciente)
+{
+  return paciente != NULL ? paciente->senha : NULL;
 }
 
 /**
@@ -128,9 +115,12 @@ void paciente_definir_cpf(PACIENTE *paciente, char cpf[])
  * * @param paciente Ponteiro para a estrutura PACIENTE.
  * @return Ponteiro para a estrutura HISTORICO do paciente ou NULL se o paciente for nulo.
  */
-SENHA* paciente_obter_senha(PACIENTE *paciente)
+void paciente_definir_senha(PACIENTE *paciente, SENHA* senha)
 {
-  return paciente != NULL ? paciente->senha : NULL;
+  if (paciente != NULL)
+  {
+    paciente-> senha = senha;
+  }
 }
 
 /**
