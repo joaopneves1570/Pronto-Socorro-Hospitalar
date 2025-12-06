@@ -242,7 +242,7 @@ NO* lista_buscar_no(NO* raiz, long int cpf, PACIENTE** p){
     }
     else if (cpf < cpf_raiz)
         return lista_buscar_no(raiz->esq, cpf, p);
-    else if (cpf > cpf_raiz)
+    else
         return lista_buscar_no(raiz->dir, cpf, p);
     
 }
