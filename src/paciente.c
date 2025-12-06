@@ -160,7 +160,7 @@ char *paciente_para_string(PACIENTE *paciente, int *tamanho)
   ponteiro_atual += bytes_escritos + 1; // +1 para pular o \0 que o sprintf colocou
 
   // 3. Copia a Prioridade
-  bytes_escritos = sprintf(ponteiro_atual, "%s", senha_obter_prioridade(paciente->senha));
+  bytes_escritos = sprintf(ponteiro_atual, "%d", senha_obter_prioridade(paciente->senha));
   ponteiro_atual += bytes_escritos + 1;
 
   // 4. Copia a Posição (Unsigned Int)
@@ -182,7 +182,7 @@ PACIENTE *paciente_de_string(char *buffer)
 {
   char cpf[12];
   char nome[256];
-  char prioridade[3];
+  char prioridade_str[2];
   char posicao_str[20];
 
   // 1. Lê o CPF
@@ -195,17 +195,21 @@ PACIENTE *paciente_de_string(char *buffer)
 
   // 3. Lê a Prioridade
   // Na função anterior, gravamos isso logo após o nome
-  strcpy(prioridade, buffer);
+  strcpy(prioridade_str, buffer);
   buffer += strlen(buffer) + 1;
 
   // 4. Lê a Posição (que está como string)
   strcpy(posicao_str, buffer);
   buffer += strlen(buffer) + 1; 
 
-  // Converte a string da posição de volta para unsigned int
-  unsigned int posicao = (unsigned int)atoi(posicao_str); 
+  int prioridade = atoi(prioridade_str);
+  unsigned int posicao = (unsigned int)atol(posicao_str); 
 
-  return paciente_criar(nome, cpf, prioridade);
+  SENHA* senha = senha_criar(prioridade, posicao);
+
+  if (senha == NULL) return NULL;
+
+  return paciente_criar(nome, cpf, senha);
 }
 
 /**

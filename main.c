@@ -241,34 +241,6 @@ char *cpf_ler()
   return cpf;
 }
 
-void str_to_lower(char *str)
-{
-  for(int i = 0; str[i]; i++)
-  {
-    str[i] = tolower(str[i]);
-  }
-}
-
-// TODO: colocar no senha .h e .c
-int prioridade_ler()
-{
-  char buf[16];
-
-  scanf("%15s", buf);
-
-  str_to_lower(buf);
-  
-  int val = atoi(buf);
-
-  if (strcmp(buf, "em") == 0 || val == 1) return 0;
-  if (strcmp(buf, "mu") == 0 || val == 2) return 1;
-  if (strcmp(buf, "ur") == 0 || val == 3) return 2;
-  if (strcmp(buf, "pu") == 0 || strcmp(buf, "po") == 0 || val == 4) return 3;
-  if (strcmp(buf, "nu") == 0 || strcmp(buf, "na") == 0 || strncmp(buf, "nã", 2) == 0 || val == 5) return 4;
-
-  return -1;
-}
-
 /**
  * @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitará
  *
@@ -376,7 +348,7 @@ int main()
 
       exibir_menu_filas(filas_descricoes);
 
-      int prioridade = prioridade_ler();
+      int prioridade = prioridade_ler(stdin);
 
       SENHA* senha = senha_criar(prioridade, ++ultima_posicao);
 
