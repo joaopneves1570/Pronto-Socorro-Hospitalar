@@ -1,261 +1,292 @@
-#include "../include/lista.h"
-#include "../include/paciente.h" 
+#include "lista.h"
 
 typedef struct no_ NO;
-
-/**
- * @brief Estrutura de um nó da lista duplamente encadeada.
- * * Cada nó contém um ponteiro para um paciente e ponteiros para o
- * nó próximo e o nó anterior na lista.
- */
-struct no_
-{
-    PACIENTE *pac;
-    NO *prox;
-    NO *ant;
+struct no_{
+    NO* esq;
+    NO* dir;
+    PACIENTE* pac;
+    int altura;
 };
 
-/**
- * @brief Estrutura da lista de pacientes.
- * * Implementada como uma lista duplamente encadeada circular com um nó cabeça (sentinela).
- * O nó cabeça simplifica as operações, evitando casos de borda.
- */
-struct lista_
-{
-    NO *inicio; // Ponteiro para o nó cabeça (sentinela)
-    int tamanho;
+struct avl_{
+    NO* raiz;
 };
 
-/**
- * @brief Aloca e inicializa uma nova lista vazia com um nó cabeça.
- * @details O nó cabeça (sentinela) é um nó especial que não armazena dados de pacientes
- * e cujos ponteiros 'prox' e 'ant' apontam para ele mesmo em uma lista vazia.
- * @return Ponteiro para a estrutura LISTA alocada ou NULL em caso de erro.
- */
-LISTA *lista_criar()
-{
-    LISTA *lista = (LISTA *)malloc(sizeof(LISTA));
-    if (lista != NULL)
-    {
-        NO *cabeca = (NO *)malloc(sizeof(NO));
-        if (cabeca != NULL)
-        {
-            cabeca->pac = paciente_criar("CABECA", "00000000000"); // Paciente sentinela
-            lista->inicio = cabeca;
-            lista->inicio->prox = lista->inicio;
-            lista->inicio->ant = lista->inicio;
-            lista->tamanho = 0;
-            return lista;
-        }
-        free(lista); // Libera a lista se a alocação do nó cabeça falhar
+LISTA* lista_criar(void){
+    LISTA* lista = (LISTA*)malloc(sizeof(LISTA));
+    if (lista != NULL){
+        lista->raiz = NULL;
     }
 
-    return NULL;
+    return lista;
 }
 
-/**
- * @brief Insere um novo paciente na lista.
- * @details A inserção é sempre feita após o último elemento (antes do nó cabeça),
- * aproveitando a estrutura circular da lista.
- * @param lista Ponteiro para a lista.
- * @param p Ponteiro para o paciente a ser inserido.
- * @return true se a inserção foi bem-sucedida, false caso contrário.
- */
-bool lista_inserir(LISTA *lista, PACIENTE *p)
-{
-    if (lista != NULL && !lista_cheia(lista))
-    {
-        NO *novo = (NO *)malloc(sizeof(NO));
-        if (novo != NULL)
-        {
-            novo->pac = p;
-            novo->prox = lista->inicio;
-            novo->ant = novo->prox->ant;
-            novo->ant->prox = novo;
-            novo->prox->ant = novo;
-            lista->tamanho++;
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * @brief Remove um paciente específico da lista, buscado pelo CPF.
- * @details Utiliza o nó cabeça como sentinela para a busca, colocando o CPF do paciente
- * a ser removido no paciente do nó cabeça. Isso garante que a busca sempre encontrará o
- * CPF, simplificando o loop ao remover a verificação de final de lista.
- * @param lista Ponteiro para a lista.
- * @param pac Ponteiro para o paciente a ser removido (usado para obter o CPF).
- * @return Ponteiro para o PACIENTE removido, ou NULL se não for encontrado.
- */
-PACIENTE *lista_remover(LISTA *lista, PACIENTE *pac)
-{
-    if ((lista != NULL) && (pac != NULL) && (!lista_vazia(lista)))
-    {
-        paciente_definir_cpf(lista->inicio->pac, paciente_obter_cpf(pac));
-        NO *aux = lista->inicio->prox;
-
-        // O loop para quando encontra o CPF (garantido pelo sentinela)
-        while (strcmp(paciente_obter_cpf(aux->pac), paciente_obter_cpf(pac)) != 0)
-        {
-            aux = aux->prox;
-        }
-
-        // Se o loop parou antes do nó cabeça, o paciente foi encontrado
-        if (aux != lista->inicio)
-        {
-            aux->ant->prox = aux->prox;
-            aux->prox->ant = aux->ant;
-            PACIENTE *paciente_removido = aux->pac;
-            free(aux);
-            lista->tamanho--;
-            return paciente_removido;
-        }
+NO* lista_cria_no(PACIENTE* p){
+    NO* novo = (NO*)malloc(sizeof(NO));
+    if (novo != NULL){
+        novo->altura = 0;
+        novo->dir = NULL;
+        novo->esq = NULL;
+        novo->pac = p;
     }
 
-    return NULL;
+    return novo;
 }
 
-/**
- * @brief Remove o primeiro paciente da lista.
- * @param lista Ponteiro para a lista.
- * @return Ponteiro para o PACIENTE removido ou NULL se a lista estiver vazia.
- */
-PACIENTE *lista_remover_inicio(LISTA *lista)
-{
-    if ((lista != NULL) && (!lista_vazia(lista)))
-    {
-        NO *no = lista->inicio->prox;
-
-        PACIENTE *paciente = no->pac;
-
-        no->ant->prox = no->prox;
-        no->prox->ant = no->ant;
-        no->ant = NULL;
-        no->prox = NULL;
-
-        free(no);
-        lista->tamanho--;
-        return paciente;
+int lista_altura_no(NO* raiz){
+    if (raiz != NULL){
+        return raiz->altura;
     }
 
-    return NULL;
+    return -1;
 }
 
-/**
- * @brief Verifica se a lista está vazia.
- * @details Uma lista com nó cabeça está vazia se o ponteiro 'prox' do nó cabeça aponta para ele mesmo.
- * @param l Ponteiro para a lista.
- * @return true se a lista está vazia, false caso contrário.
- */
-bool lista_vazia(LISTA *l)
-{
-    if (l != NULL)
-        return l->inicio->prox == l->inicio;
-    return false;
+NO* rodar_direita(NO* a){
+    NO* b = a->esq;
+    a->esq = b->dir;
+    b->dir = a;
+
+    a->altura = max(lista_altura_no(a->esq), lista_altura_no(a->dir)) + 1;
+    b->altura = max(lista_altura_no(b->esq), lista_altura_no(b->dir)) + 1;
+
+    return b;
 }
 
-/**
- * @brief Verifica se a memória está cheia, tentando alocar um novo nó.
- * @param l Ponteiro para a lista.
- * @return true se não há memória disponível, false caso contrário.
- */
-bool lista_cheia(LISTA *l)
-{
-    if (l != NULL)
-    {
-        NO *teste = (NO *)malloc(sizeof(NO));
-        if (teste != NULL)
-        {
-            free(teste);
-            teste = NULL;
-            return false;
-        }
+NO* rodar_esquerda(NO* a){
+    NO* b = a->dir;
+    a->dir = b->esq;
+    b->esq = a;
+
+    a->altura = max(lista_altura_no(a->esq), lista_altura_no(a->dir)) + 1;
+    b->altura = max(lista_altura_no(b->esq), lista_altura_no(b->dir)) + 1;
+
+    return b;
+}
+
+NO* rodar_direita_esquerda(NO* a){
+    NO* b = a->dir;
+    b = rodar_direita(b);
+    return rodar_esquerda(a);
+}
+
+NO* rodar_esquerda_direita(NO* a){
+    NO* b = a->esq;
+    b = rodar_esquerda(b);
+    return rodar_direita(a);
+}
+
+bool lista_inserir_no(NO* raiz, PACIENTE* p){
+    if (raiz == NULL)
+        raiz = lista_cria_no(raiz);
+    
+    long int chave_item = atol(paciente_obter_cpf(p));
+    long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
+
+    if (chave_item < chave_raiz){
+        raiz->esq = lista_inserir_no(raiz->esq, p);
+    } else if (chave_item > chave_raiz){
+        raiz->dir = lista_inserir_no(raiz->dir, p);
+    }
+
+    raiz->altura = max(lista_altura_no(raiz->esq), lista_altura_no(raiz->dir)) + 1;
+    int FB = lista_altura_no(raiz->esq) - lista_altura_no(raiz->dir);
+
+    if (FB == -2){
+        if (lista_altura_no(raiz->dir->esq) - lista_altura_no(raiz->dir->dir) <= 0)
+            raiz = rodar_esquerda(raiz);
         else
-        {
-            return true;
-        }
+            raiz = rodar_direita_esquerda(raiz);
+    } else if (FB == 2){
+        if (lista_altura_no(raiz->esq->esq) - lista_altura_no(raiz->esq->dir) >= 0)
+            raiz = rodar_direita(raiz);
+        else
+            raiz = rodar_esquerda_direita(raiz);
     }
+
+    return raiz;
+}
+
+bool lista_inserir(LISTA* l, PACIENTE* p){
+    if (l != NULL){
+        return ((l->raiz = lista_inserir_no(l->raiz, p)) != NULL);
+    }
+
     return false;
 }
 
-/**
- * @brief Busca um paciente na lista pelo seu CPF.
- * @details Também utiliza o nó cabeça como sentinela para otimizar a busca. O CPF
- * é temporariamente copiado para o paciente do nó cabeça, garantindo que o loop de
- * busca sempre termine.
- * @param l Ponteiro para a lista.
- * @param cpf String com o CPF a ser buscado.
- * @return Ponteiro para o PACIENTE encontrado ou NULL se não estiver na lista.
- */
-PACIENTE *lista_buscar(LISTA *l, char *cpf)
-{
-    if ((l != NULL) && (!lista_vazia(l)))
-    {
-        paciente_definir_cpf(l->inicio->pac, cpf);
-        NO *aux = l->inicio->prox;
+void troca_max_esq(NO* atual, NO* raiz, NO* ant, PACIENTE** pac){
 
-        while ((strcmp(paciente_obter_cpf(aux->pac), cpf) != 0))
-        {
-            aux = aux->prox;
-        }
-
-        // Se a busca parou em um nó que não é o cabeça, o paciente foi encontrado.
-        if (aux != l->inicio)
-            return aux->pac;
-    }
-
-    return NULL;
-}
-
-/**
- * @brief Imprime na tela os nomes de todos os pacientes na lista.
- * @param l Ponteiro para a lista.
- */
-void lista_mostrar(LISTA *l)
-{
-    if ((l != NULL) && (!lista_vazia(l)))
-    {
-        NO *aux = l->inicio->prox;
-        while (aux != l->inicio)
-        {
-            paciente_imprimir(aux->pac);
-            aux = aux->prox;
-        }
-    }
-}
-
-/**
- * @brief Libera toda a memória associada à lista.
- * @details Desaloca a memória de cada paciente, de cada nó, do nó cabeça,
- * e finalmente da própria estrutura da lista.
- * @param l Ponteiro para o ponteiro da lista a ser apagada.
- */
-void lista_apagar(LISTA **l)
-{
-    if (l == NULL || *l == NULL)
-    {
+    if (atual->dir != NULL){
+        troca_max_esq(atual->dir, raiz, atual, pac);
         return;
     }
 
-    NO *no_atual = (*l)->inicio->prox;
-    NO *no_proximo;
+    if (ant == raiz)
+        ant->esq = atual->esq;
+    else
+        ant->dir = atual->esq;
+    
+    if (pac != NULL)
+        *pac = raiz->pac;
 
-    // Itera e libera cada nó e seu respectivo paciente
-    while (no_atual != (*l)->inicio)
-    {
-        no_proximo = no_atual->prox;
-        paciente_apagar(&(no_atual->pac));
-        free(no_atual);
-        no_atual = no_proximo;
+    raiz->pac = atual->pac;
+
+    free(atual);
+    atual = NULL;
+    
+}
+
+PACIENTE* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
+    NO* p;
+    long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
+
+    if (raiz == NULL)
+        return NULL;
+    if (chave == chave_raiz){
+        if (raiz->esq == NULL || raiz->dir == NULL){
+            p = raiz;
+
+            if (pac != NULL) {
+                *pac = p->pac;
+            }
+
+            if (raiz->esq == NULL)
+                raiz = raiz->dir;
+            else
+                raiz = raiz->esq;
+
+            
+            free(p);
+            p = NULL;
+
+        } else {
+            troca_max_esq(raiz->esq, raiz, raiz, pac);
+        }
+    } else if (chave < chave_raiz ){
+        raiz->esq = lista_remover_no(raiz->esq, chave, pac);
+    } else if (chave > chave_raiz){
+        raiz->dir = lista_remover_no(raiz->dir, chave, pac);
     }
 
-    // Libera o paciente e o nó cabeça
-    paciente_apagar(&((*l)->inicio->pac));
-    free((*l)->inicio);
+    if (raiz != NULL){
+        raiz->altura = max(lista_altura_no(raiz->esq), lista_altura_no(raiz->dir)) + 1;
 
-    // Libera a estrutura da lista e anula o ponteiro original
-    free(*l);
-    *l = NULL;
+        int FB = lista_altura_no(raiz->esq) - lista_altura_no(raiz->dir);
+
+        if (FB == -2){
+            if (lista_altura_no(raiz->dir->esq) - lista_altura_no(raiz->dir->dir) <= 0)
+                raiz = rodar_esquerda(raiz);
+            else
+                raiz = rodar_direita_esquerda(raiz);
+        } else if (FB == 2){
+            if (lista_altura_no(raiz->esq->esq) - lista_altura_no(raiz->esq->dir) >= 0)
+                raiz = rodar_direita(raiz);
+            else
+                raiz = rodar_esquerda_direita(raiz);
+        }
+        
+    }
+
+    return raiz;
 }
+
+PACIENTE* lista_remover(LISTA* l, PACIENTE* p){
+    if (l != NULL && !(lista_vazia(l))){
+        PACIENTE* paciente_recuperado = NULL;
+        l->raiz = lista_remover_no(l->raiz, atol(paciente_obter_cpf(p)), &paciente_recuperado);
+        return paciente_recuperado;
+    }
+
+    return NULL;
+}
+
+PACIENTE* lista_remover_inicio(LISTA* l){
+    if (l != NULL && !(lista_vazia(l))){
+        PACIENTE* paciente_recuperado = NULL;
+        l->raiz = lista_remover_no(l->raiz, atol(paciente_obter_cpf(l->raiz->pac)), &paciente_recuperado);
+        return paciente_recuperado;
+    }
+
+    return NULL;
+}
+
+bool lista_vazia(LISTA* l){
+    if (l != NULL){
+        return l->raiz == NULL;
+    }
+
+    return true;
+}
+
+bool lista_cheia(LISTA* l){
+    if (l != NULL){
+        NO* teste = (NO*)malloc(sizeof(NO));
+        if (teste == NULL){
+            return true;
+        }
+        free(teste);
+        teste = NULL;
+    }
+    return false;
+}
+
+NO* lista_buscar_no(NO* raiz, long int cpf, PACIENTE** p){
+    if (raiz == NULL)
+        return NULL;
+    
+    long int cpf_raiz = atol(paciente_obter_cpf(raiz->pac));
+    
+    if (cpf == cpf_raiz){
+        *p = raiz->pac;
+        return raiz;
+    }
+    else if (cpf < cpf_raiz)
+        return lista_buscar_no(raiz->esq, cpf, p);
+    else if (cpf > cpf_raiz)
+        return lista_buscar_no(raiz->dir, cpf, p);
+}
+
+PACIENTE* lista_buscar(LISTA* l, char* cpf){
+    if (l != NULL){
+        PACIENTE* paciente_buscado = NULL;
+        l->raiz = lista_buscar_no(l->raiz, atol(cpf), &paciente_buscado);
+        return paciente_buscado;
+    }
+
+    return NULL;
+}
+
+void lista_em_ordem(NO* raiz){
+    if (raiz != NULL){
+        lista_em_ordem(raiz->esq);
+        printf("Nome do paciente: %s\n", paciente_obter_nome(raiz->pac));
+        printf("CPF do paciente: %s\n", paciente_obter_cpf(raiz->pac));
+        lista_em_ordem(raiz->dir);
+    }
+}
+
+void lista_mostrar(LISTA* l){
+    if (l != NULL){
+        lista_em_ordem(l->raiz);
+    }
+}
+
+void lista_apagar_aux(NO* raiz){
+    if (raiz != NULL){
+        lista_apagar_aux(raiz->esq);
+        lista_apagar_aux(raiz->dir);
+        paciente_apagar(&raiz->pac);
+        free(raiz);
+        raiz = NULL;
+    }
+}
+
+void lista_apagar(LISTA** l){
+    if (*l != NULL){
+        lista_apagar_aux((*l)->raiz);
+        free(*l);
+        *l = NULL;
+    }
+}
+
+

@@ -6,9 +6,10 @@
     #include <stdbool.h>
     #include <string.h>
     #include "paciente.h"
-    #include "historico.h"
 
-    typedef struct lista_ LISTA;
+    #define max(a, b) (a > b ? a : b)
+
+    typedef struct avl_ LISTA;
 
     LISTA* lista_criar();
 
