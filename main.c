@@ -307,11 +307,11 @@ int main()
     return -1;
   }
 
-  if (!LOAD(&lista, &fila))
-  {
-    printf(ANSI_COLOR_RED "[ERRO] Falha ao carregar os dados. O programa será encerrado.\n" ANSI_COLOR_RESET);
-    return -1;
-  }
+//   if (!LOAD(&lista, &fila))
+//   {
+//     printf(ANSI_COLOR_RED "[ERRO] Falha ao carregar os dados. O programa será encerrado.\n" ANSI_COLOR_RESET);
+//     return -1;
+//   }
 
   const char* opcoes[7] =
   {
@@ -468,11 +468,11 @@ int main()
 
   } while (opcao_escolhida != SAIR);
 
-  SAVE(&lista, &fila);
+//   SAVE(&lista, &fila);
   printf(ANSI_COLOR_GREEN "[SUCESSO] Dados salvos. Até logo!\n" ANSI_COLOR_RESET);
 
   lista_apagar(&lista);
-  fila_apagar(&fila);
+//   fila_apagar(&fila);
 
   return 0;
 }

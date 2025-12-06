@@ -205,7 +205,7 @@ PACIENTE *paciente_de_string(char *buffer)
   // Converte a string da posição de volta para unsigned int
   unsigned int posicao = (unsigned int)atoi(posicao_str); 
 
-  return paciente_criar(nome, cpf, prioridade, posicao);
+  return paciente_criar(nome, cpf, prioridade);
 }
 
 /**
