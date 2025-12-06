@@ -1,5 +1,8 @@
 #include "../include/paciente.h"
-#include "../include/historico.h"
+#include "../include/senha.h"
+
+#include <math.h>
+#include <stdio.h>
 
 /**
  * @brief Estrutura que representa um paciente.
@@ -8,9 +11,9 @@
  */
 struct paciente_
 {
-    char *nome;
-    char *cpf;
-    HISTORICO *hist;
+  char *nome;
+  char *cpf;
+  SENHA* senha;
 };
 
 /**
@@ -21,44 +24,38 @@ struct paciente_
  * @param cpf String contendo o CPF do paciente.
  * @return Ponteiro para a estrutura PACIENTE alocada ou NULL em caso de erro de alocação.
  */
-PACIENTE *paciente_criar(char nome[], char cpf[])
+PACIENTE *paciente_criar(char nome[], char cpf[], char prioridade[], unsigned int posicao)
 {
-    PACIENTE *p = (PACIENTE *)malloc(sizeof(PACIENTE));
-    if (p == NULL)
-        return NULL;
+  PACIENTE *paciente = (PACIENTE *)malloc(sizeof(PACIENTE));
+  if (paciente == NULL) return NULL;
 
-    // Inicializa as variaveis do TAD
-    p->nome = NULL;
-    p->cpf = NULL;
-    p->hist = NULL;
+  // Aloca memória para o nome e copia
+  paciente->nome = (char *)malloc(strlen(nome) + 1);
+  if (paciente->nome == NULL)
+  {
+    paciente_apagar(&paciente);
+    return NULL;
+  }
+  strcpy(paciente->nome, nome);
 
-    // Aloca memória para o nome e copia
-    p->nome = (char *)malloc(strlen(nome) + 1);
-    if (p->nome == NULL)
-    {
-        paciente_apagar(&p);
-        return NULL;
-    }
-    strcpy(p->nome, nome);
+  // Aloca memória para o CPF e copia
+  paciente->cpf = (char *)malloc(strlen(cpf) + 1);
+  if (paciente->cpf == NULL)
+  {
+    paciente_apagar(&paciente);
+    return NULL;
+  }
+  strcpy(paciente->cpf, cpf);
 
-    // Aloca memória para o CPF e copia
-    p->cpf = (char *)malloc(strlen(cpf) + 1);
-    if (p->cpf == NULL)
-    {
-        paciente_apagar(&p);
-        return NULL;
-    }
-    strcpy(p->cpf, cpf);
+  // Cria a senha
+  paciente->senha = senha_criar(prioridade, posicao);
+  if (paciente->senha == NULL)
+  {
+    paciente_apagar(&paciente);
+    return NULL;
+  }
 
-    // Cria o histórico
-    p->hist = historico_criar();
-    if (p->hist == NULL)
-    {
-        paciente_apagar(&p);
-        return NULL;
-    }
-
-    return p;
+  return paciente;
 }
 
 /**
@@ -70,17 +67,17 @@ PACIENTE *paciente_criar(char nome[], char cpf[])
  */
 bool paciente_apagar(PACIENTE **paciente)
 {
-    if (paciente != NULL && (*paciente) != NULL)
-    {
-        historico_apagar(&((*paciente)->hist));
-        free((*paciente)->nome);
-        free((*paciente)->cpf); 
-        free(*paciente);
-        *paciente = NULL;
-        return true;
-    }
+  if (paciente != NULL && (*paciente) != NULL)
+  {
+    senha_apagar(&((*paciente)->senha));
+    free((*paciente)->nome);
+    free((*paciente)->cpf); 
+    free(*paciente);
+    *paciente = NULL;
+    return true;
+  }
 
-    return false;
+  return false;
 }
 
 /**
@@ -90,12 +87,12 @@ bool paciente_apagar(PACIENTE **paciente)
  */
 char *paciente_obter_nome(PACIENTE *paciente)
 {
-    if (paciente != NULL)
-    {
-        return paciente->nome;
-    }
+  if (paciente != NULL)
+  {
+    return paciente->nome;
+  }
 
-    return NULL;
+  return NULL;
 }
 
 /**
@@ -105,12 +102,12 @@ char *paciente_obter_nome(PACIENTE *paciente)
  */
 char *paciente_obter_cpf(PACIENTE *paciente)
 {
-    if (paciente != NULL)
-    {
-        return paciente->cpf;
-    }
+  if (paciente != NULL)
+  {
+    return paciente->cpf;
+  }
 
-    return NULL;
+  return NULL;
 }
 
 /**
@@ -120,10 +117,10 @@ char *paciente_obter_cpf(PACIENTE *paciente)
  */
 void paciente_definir_cpf(PACIENTE *paciente, char cpf[])
 {
-    if (paciente != NULL)
-    {
-        strcpy(paciente->cpf, cpf);
-    }
+  if (paciente != NULL)
+  {
+    strcpy(paciente->cpf, cpf);
+  }
 }
 
 /**
@@ -131,14 +128,9 @@ void paciente_definir_cpf(PACIENTE *paciente, char cpf[])
  * * @param paciente Ponteiro para a estrutura PACIENTE.
  * @return Ponteiro para a estrutura HISTORICO do paciente ou NULL se o paciente for nulo.
  */
-HISTORICO *paciente_obter_historico(PACIENTE *paciente)
+SENHA* paciente_obter_senha(PACIENTE *paciente)
 {
-    if (paciente != NULL)
-    {
-        return paciente->hist;
-    }
-
-    return NULL;
+  return paciente != NULL ? paciente->senha : NULL;
 }
 
 /**
@@ -152,61 +144,41 @@ HISTORICO *paciente_obter_historico(PACIENTE *paciente)
  */
 char *paciente_para_string(PACIENTE *paciente, int *tamanho)
 {
-    int tam_nome = strlen(paciente->nome);
-    int tam_historico = historico_tamanho(paciente->hist);
+  unsigned int pos = senha_obter_posicao(paciente->senha);
+  int tam_posicao = (pos == 0) ? 1 : (int)log10(pos) + 1;
+  
+  int tam_nome = strlen(paciente->nome);
 
-    HISTORICO *historico_aux = historico_criar();
-    if (historico_aux == NULL)
-        return NULL;
+  // Calcula o tamanho total necessário para o buffer
+  // 11 (CPF) + 1 ('\0') + tam_nome + 1 ('\0') + 2 (prioridade) + tam_posicao + 1 ('\0')
+  int tamanho_total = 11 + 1 + tam_nome + 1 + 2 + tam_posicao + 1;
 
-    // Calcula o tamanho total necessário para o buffer
-    int tamanho_total = 12 + tam_nome + 1; // 11 (CPF) + 1 ('\0') + tam_nome + 1 ('\0')
+  char *str_paciente = calloc(tamanho_total, sizeof(char));
 
-    // Itera sobre o histórico para somar o tamanho de cada procedimento
-    for (int i = 0; i < tam_historico; i++)
-    {
-        char *procedimento = historico_remover(paciente->hist);
-        tamanho_total += strlen(procedimento) + 1; // +1 para o '\0'
-        historico_inserir(historico_aux, procedimento);
-    }
+  if (str_paciente == NULL) return NULL;
 
-    char *str_paciente = calloc(tamanho_total, sizeof(char));
+  char *ponteiro_atual = str_paciente;
 
-    // Se a alocação falhar, volta o histórico original e retorna
-    if (str_paciente == NULL)
-    {
-        for (int i = 0; i < tam_historico; i++)
-            historico_inserir(paciente->hist, historico_remover(historico_aux));
-        historico_apagar(&historico_aux);
-        return NULL;
-    }
+  // 1. Copia o CPF
+  memcpy(ponteiro_atual, paciente->cpf, 11);
+  ponteiro_atual[11] = '\0';
+  ponteiro_atual += 12; // Avança 12 bytes
 
-    char *ponteiro_atual = str_paciente;
+  // 2. Copia o Nome (String)
+  // Usa "%s" para garantir que é uma string literal
+  int bytes_escritos = sprintf(ponteiro_atual, "%s", paciente->nome);
+  ponteiro_atual += bytes_escritos + 1; // +1 para pular o \0 que o sprintf colocou
 
-    // Copia o CPF (11 bytes) e adiciona o separador '\0'
-    memcpy(ponteiro_atual, paciente->cpf, 11);
-    ponteiro_atual[11] = '\0';
-    ponteiro_atual += 12; // Avança o ponteiro 12 posições
+  // 3. Copia a Prioridade
+  bytes_escritos = sprintf(ponteiro_atual, "%s", senha_obter_prioridade(paciente->senha));
+  ponteiro_atual += bytes_escritos + 1;
 
-    // Copia o nome e avança o ponteiro
-    int bytes_escritos = sprintf(ponteiro_atual, "%s", paciente->nome);
-    ponteiro_atual += bytes_escritos + 1;
+  // 4. Copia a Posição (Unsigned Int)
+  bytes_escritos = sprintf(ponteiro_atual, "%u", pos);
+  ponteiro_atual += bytes_escritos + 1;
 
-    // Esvazia a pilha auxiliar, escrevendo na string e restaurando a pilha original
-    for (int i = 0; i < tam_historico; i++)
-    {
-        char *procedimento = historico_remover(historico_aux);
-
-        bytes_escritos = sprintf(ponteiro_atual, "%s", procedimento);
-        ponteiro_atual += bytes_escritos + 1;
-
-        historico_inserir(paciente->hist, procedimento);
-    }
-
-    historico_apagar(&historico_aux);
-
-    *tamanho = tamanho_total;
-    return str_paciente;
+  *tamanho = tamanho_total;
+  return str_paciente;
 }
 
 /**
@@ -218,27 +190,32 @@ char *paciente_para_string(PACIENTE *paciente, int *tamanho)
  */
 PACIENTE *paciente_de_string(char *buffer)
 {
-    char cpf[12];
-    char nome[256];
+  char cpf[12];
+  char nome[256];
+  char prioridade[3];
+  char posicao_str[20];
 
-    // Lê o CPF
-    strcpy(cpf, buffer);
-    buffer += strlen(buffer) + 1; // Pula o CPF e seu '\0'
+  // 1. Lê o CPF
+  strcpy(cpf, buffer);
+  buffer += strlen(buffer) + 1; // Pula o CPF e seu '\0'
 
-    // Lê o Nome
-    strcpy(nome, buffer);
-    buffer += strlen(nome) + 1; // Pula o Nome e seu '\0'
+  // 2. Lê o Nome
+  strcpy(nome, buffer);
+  buffer += strlen(buffer) + 1; // Pula o Nome e seu '\0'
 
-    PACIENTE *p = paciente_criar(nome, cpf);
+  // 3. Lê a Prioridade
+  // Na função anterior, gravamos isso logo após o nome
+  strcpy(prioridade, buffer);
+  buffer += strlen(buffer) + 1;
 
-    // Lê cada procedimento do histórico até o final do buffer
-    while (buffer != NULL && *buffer != '\0')
-    {
-        historico_inserir(p->hist, buffer);
-        buffer += strlen(buffer) + 1;
-    }
+  // 4. Lê a Posição (que está como string)
+  strcpy(posicao_str, buffer);
+  buffer += strlen(buffer) + 1; 
 
-    return p;
+  // Converte a string da posição de volta para unsigned int
+  unsigned int posicao = (unsigned int)atoi(posicao_str); 
+
+  return paciente_criar(nome, cpf, prioridade, posicao);
 }
 
 /**
@@ -247,6 +224,6 @@ PACIENTE *paciente_de_string(char *buffer)
  */
 void paciente_imprimir(PACIENTE *paciente)
 {
-    if (paciente != NULL)
-        printf("%s\n", paciente_obter_nome(paciente));
+  if (paciente != NULL)
+    printf("%s\n", paciente_obter_nome(paciente));
 }
