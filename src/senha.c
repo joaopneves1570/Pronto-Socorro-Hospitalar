@@ -8,7 +8,7 @@
  */
 typedef struct senha_
 {
-  char prioridade[3];
+  int prioridade;
   int posicao;
 } SENHA;
 
@@ -16,13 +16,13 @@ typedef struct senha_
  * @brief Aloca e inicializa uma nova estrutura de histórico (pilha).
  * @return Ponteiro para a estrutura SENHA alocada ou NULL em caso de erro.
  */
-SENHA* senha_criar(char prioridade[], unsigned int posicao)
+SENHA* senha_criar(int prioridade, unsigned int posicao)
 {
-  SENHA *senha = (SENHA *)malloc(sizeof(SENHA));
+  SENHA *senha = (SENHA*)malloc(sizeof(SENHA));
 
   if (senha != NULL)
   {
-    strncpy(senha->prioridade, prioridade, 3);
+    senha->prioridade = prioridade;
     senha->posicao = posicao;
     return senha;
   }
@@ -37,11 +37,11 @@ SENHA* senha_criar(char prioridade[], unsigned int posicao)
  * @param procedimento String contendo a descrição do procedimento a ser adicionado.
  * @return true se a inserção foi bem-sucedida, false caso contrário (histórico cheio ou erro de alocação).
  */
-bool senha_alterar(SENHA *senha, char prioridade[], unsigned int posicao)
+bool senha_alterar(SENHA *senha, int prioridade, unsigned int posicao)
 {
   if (senha != NULL)
   {
-    strncpy(senha->prioridade, prioridade, 3);
+    senha->prioridade = prioridade;
     senha->posicao = posicao;
   }
 
@@ -55,9 +55,9 @@ bool senha_alterar(SENHA *senha, char prioridade[], unsigned int posicao)
  * @param senha Ponteiro para o histórico.
  * @return Ponteiro para uma nova string com o procedimento removido, ou NULL se o histórico estiver vazio.
  */
-char* senha_obter_prioridade(SENHA* senha)
+int senha_obter_prioridade(SENHA* senha)
 {
-  return senha != NULL ? senha->prioridade : NULL;
+  return senha != NULL ? senha->prioridade : -1;
 }
 
 /**
@@ -88,6 +88,19 @@ void senha_apagar(SENHA **senha)
   }
 }
 
+char* prioridade_sigla(int i)
+{
+  switch (i)
+  {
+    case 0: return "EM";
+    case 1: return "MU";
+    case 2: return "UR";
+    case 3: return "PU";
+    case 4: return "NU";
+  }
+  return "";
+}
+
 /**
  * @brief Imprime todos os procedimentos do histórico, do mais recente para o mais antigo.
  * @param senha Ponteiro para o histórico a ser impresso.
@@ -96,6 +109,6 @@ void senha_imprimir(SENHA *senha)
 {
   if (senha != NULL)
   {
-    printf("%s%d\n", senha->prioridade, senha->posicao % 999 + 1);
+    printf("%s%d\n", prioridade_sigla(senha->prioridade), senha->posicao % 999 + 1);
   }
 }

@@ -5,14 +5,17 @@
     #include <stdlib.h>
     #include <stdbool.h>
     #include <string.h>
+    #include "../include/senha.h"
 
     typedef struct paciente_ PACIENTE;
 
-    PACIENTE* paciente_criar(char nome[], char cpf[], char prioridade[], unsigned int posicao);
+    PACIENTE* paciente_criar(char nome[], char cpf[], SENHA* senha);
     bool paciente_apagar(PACIENTE** paciente);
     char* paciente_obter_nome(PACIENTE* paciente);
     char* paciente_obter_cpf(PACIENTE* paciente);    
+    SENHA* paciente_obter_senha(PACIENTE* paciente);    
     void paciente_definir_cpf(PACIENTE* paciente, char cpf[]);    
+    void paciente_definir_senha(PACIENTE* paciente, SENHA* senha);    
     void paciente_imprimir(PACIENTE* paciente);
     char* paciente_para_string(PACIENTE* paciente, int* tamanho);
     PACIENTE* paciente_de_string(char* buffer);
