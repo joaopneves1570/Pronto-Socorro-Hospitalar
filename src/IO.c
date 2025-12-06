@@ -1,7 +1,8 @@
 #include "../include/IO.h"
 #include "../include/paciente.h"
 #include "../include/lista.h"
-#include "../include/fila.h" 
+#include "../include/fila.h"
+#include "../include/senha.h"  
 
 /**
  * @brief Salva o estado atual da lista de pacientes e da fila de espera em arquivos binários.
@@ -42,8 +43,10 @@ bool SAVE(LISTA **lista, FILA **fila)
             free(str_paciente);
             str_paciente = NULL;
         }
+
     }
-    fclose(fp_fila); fp_fila = NULL;
+    fclose(fp_fila); 
+    fp_fila = NULL;
 
     // Como a fila foi esvaziada, apaga a estrutura para liberar memória.
     fila_apagar(fila);
