@@ -1,4 +1,4 @@
-CFLAGS = -Wall -g -finput-charset=UTF-8 -fexec-charset=UTF-8
+CFLAGS = -Wall -g -finput-charset=UTF-8 -fexec-charset=UTF-8 -lm
 
 # --- Bloco de Detecção de Sistema Operacional ---
 # Verifica se a variável de ambiente OS é "Windows_NT", o que indica um sistema Windows
@@ -15,7 +15,7 @@ endif
 
 # O target 'all' agora usa a variável TARGET para o nome do arquivo de saída
 all:
-	@gcc $(CFLAGS) main.c src/IO.c src/fila.c src/lista.c src/paciente.c -I src/include -o $(TARGET)
+	@gcc $(CFLAGS) main.c src/IO.c src/fila.c src/lista.c src/paciente.c src/senha.c -I src/include -o $(TARGET) -lm
 
 # O target 'run' também usa a variável TARGET
 run:

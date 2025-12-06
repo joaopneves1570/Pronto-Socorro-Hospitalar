@@ -84,7 +84,7 @@ void senha_apagar(SENHA **senha)
   if (senha != NULL && *senha != NULL)
   {
     // free(senha->prioridade); // ?
-    free(senha);
+    free(*senha);
     *senha = NULL;
   }
 }
@@ -97,11 +97,11 @@ void str_to_lower(char *str)
   }
 }
 
-int prioridade_ler(char* str)
+int prioridade_ler()
 {
   char buf[3];
 
-  sscanf(str, "%2s", buf);
+  scanf("%2s", buf);
 
   str_to_lower(buf);
   

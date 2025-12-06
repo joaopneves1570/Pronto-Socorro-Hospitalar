@@ -348,7 +348,7 @@ int main()
 
       exibir_menu_filas(filas_descricoes);
 
-      int prioridade = prioridade_ler(stdin);
+      int prioridade = prioridade_ler();
 
       SENHA* senha = senha_criar(prioridade, ++ultima_posicao);
 

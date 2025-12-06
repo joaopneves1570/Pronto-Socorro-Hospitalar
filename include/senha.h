@@ -13,7 +13,7 @@
     int senha_obter_prioridade(SENHA* senha);
     unsigned int senha_obter_posicao(SENHA* senha);
     void senha_apagar(SENHA** senha);
-    int prioridade_ler(char* str);
+    int prioridade_ler();
     void senha_imprimir(SENHA* senha);
 
 #endif
