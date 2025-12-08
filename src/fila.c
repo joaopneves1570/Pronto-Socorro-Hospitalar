@@ -3,18 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct no_ NO;
-
-/**
- * @brief Estrutura de um nó da fila.
- * * Cada nó armazena um ponteiro para um paciente e um ponteiro para o próximo nó na fila,
- * formando uma lista encadeada.
- */
-struct no_
-{
-  NO *prox;
-  PACIENTE *paciente;
-};
+#define CAP_MAX 100
 
 /**
  * @brief Estrutura da fila de pacientes.
@@ -23,9 +12,9 @@ struct no_
  */
 struct fila_
 {
-  NO *inicio;
-  NO *fim;
-  int tamanho;
+  PACIENTE** pacientes;
+  int inicio;
+  int fim;
 };
 
 /**
@@ -35,12 +24,23 @@ struct fila_
 FILA *fila_criar()
 {
   FILA *fila = (FILA *)malloc(sizeof(FILA));
-  if (fila != NULL)
+
+  if (fila == NULL) return NULL;
+
+  PACIENTE** pacientes = (PACIENTE**)malloc(CAP_MAX * sizeof(PACIENTE*));
+
+  if (pacientes == NULL)
   {
-    fila->inicio = NULL;
-    fila->fim = NULL;
-    fila->tamanho = 0;
+    free(fila);
+    return NULL;
   }
+
+  for (int i = 0; i < CAP_MAX; i++)
+    pacientes[i] = NULL;
+
+  fila->pacientes = pacientes;
+  fila->inicio = 0;
+  fila->fim = 0;
 
   return fila;
 }
@@ -55,21 +55,11 @@ FILA *fila_criar()
  */
 bool fila_inserir(FILA *fila, PACIENTE *paciente)
 {
-  if ((fila != NULL) && (!fila_cheia(fila)))
+  if (fila != NULL && !fila_cheia(fila) && paciente != NULL)
   {
-    NO *novo = (NO *)malloc(sizeof(NO));
-    if (novo == NULL) return false; 
+    fila->pacientes[fila->fim] = paciente;
+    fila->fim = (fila->fim + 1) % CAP_MAX;
 
-    novo->paciente = paciente;
-    novo->prox = NULL;
-
-    if (fila_vazia(fila))
-      fila->inicio = novo;
-    else
-      fila->fim->prox = novo;
-
-    fila->fim = novo;
-    fila->tamanho++;
     return true;
   }
 
@@ -85,20 +75,13 @@ bool fila_inserir(FILA *fila, PACIENTE *paciente)
  */
 PACIENTE *fila_remover(FILA *fila)
 {
-  if ((fila != NULL) && (!fila_vazia(fila)))
+  if (fila != NULL && !fila_vazia(fila))
   {
-    NO *atual = fila->inicio;
-    PACIENTE *pac = atual->paciente;
+    PACIENTE *paciente = fila->pacientes[fila->inicio];
+    fila->pacientes[fila->inicio] = NULL;
+    fila->inicio = (fila->inicio + 1) % CAP_MAX;
 
-    fila->inicio = atual->prox;
-    free(atual); 
-    if (fila->inicio == NULL)
-    {
-      fila->fim = NULL;
-    }
-
-    fila->tamanho--;
-    return pac;
+    return paciente;
   }
 
   return NULL;
@@ -111,16 +94,7 @@ PACIENTE *fila_remover(FILA *fila)
  */
 bool fila_cheia(FILA *fila)
 {
-  if (fila != NULL)
-  {
-    NO* no = malloc(sizeof(NO));
-    
-    free(no);
-
-    return no == NULL;
-  }
-  
-  return true;
+  return (fila->fim - fila->inicio + CAP_MAX) % CAP_MAX >= CAP_MAX;
 }
 
 /**
@@ -132,9 +106,14 @@ bool fila_vazia(FILA *fila)
 {
   if (fila != NULL)
   {
-    return (fila->tamanho == 0);
+    return fila->inicio == fila->fim;
   }
   return true;
+}
+
+int fila_tamanho(FILA* fila)
+{
+  return (fila->fim - fila->inicio + CAP_MAX) % CAP_MAX;
 }
 
 /**
@@ -151,18 +130,15 @@ void fila_apagar(FILA **fila)
     return;
   }
 
-  NO *atual = (*fila)->inicio;
-  NO *proximo = NULL;
-
-  // Percorre a fila liberando cada nó
-  while (atual != NULL)
+  for (int i = 0; i < fila_tamanho(*fila); i++)
   {
-    proximo = atual->prox;
-    free(atual);
-    atual = proximo;
+    free((*fila)->pacientes[((*fila)->inicio + i) % CAP_MAX]);
+    (*fila)->pacientes[i] = NULL;
   }
 
-  // Libera a estrutura da fila e define o ponteiro original como NULL
+  free((*fila)->pacientes);
+  (*fila)->pacientes = NULL;
+
   free(*fila);
   *fila = NULL;
 }
@@ -175,17 +151,14 @@ void fila_apagar(FILA **fila)
  */
 PACIENTE *fila_buscar(FILA *fila, char cpf[])
 {
-  if (fila && !fila_vazia(fila))
+  if (fila == NULL || fila_vazia(fila)) return NULL;
+
+  for (int i = 0; i <fila_tamanho(fila); i++)
   {
-    NO *aux = fila->inicio;
-    while (aux != NULL)
+    // Compara o CPF do paciente atual com o CPF buscado
+    if (strcmp(paciente_obter_cpf(fila->pacientes[(fila->inicio + i) % CAP_MAX]), cpf) == 0)
     {
-      // Compara o CPF do paciente atual com o CPF buscado
-      if (strcmp(paciente_obter_cpf(aux->paciente), cpf) == 0)
-      {
-        return aux->paciente; // Retorna o paciente se encontrou
-      }
-      aux = aux->prox;
+      return fila->pacientes[(fila->inicio + i) % CAP_MAX]; // Retorna o paciente se encontrou
     }
   }
 
@@ -200,24 +173,11 @@ PACIENTE *fila_buscar(FILA *fila, char cpf[])
  */
 void fila_imprimir(FILA *fila)
 {
-  if (fila != NULL)
-  {
-    if (fila_vazia(fila))
-    {
-      printf("A fila de espera está vazia.\n");
-      return;
-    }
+  if (fila == NULL) return;
 
-    NO *atual = fila->inicio;
-    int posicao = 1;
-    printf("--- Fila de Espera ---\n");
-    while(atual != NULL)
-    {
-      printf("%d. ", posicao++);
-      paciente_imprimir(atual->paciente); // Imprime o nome do paciente
-      atual = atual->prox;
-    }
-    printf("----------------------\n");
+  for (int i = 0; i < fila_tamanho(fila); i++)
+  {
+    paciente_imprimir(fila->pacientes[(fila->inicio + i) % CAP_MAX]);
   }
 }
 
@@ -264,7 +224,6 @@ bool fila_salvar(FILA* fila, char* destino)
 {
   if (fila == NULL) return false;
 
-  NO* it = fila->inicio;
   PACIENTE* paciente;
   char *str_paciente;
   int tamanho_str_paciente;
@@ -272,9 +231,9 @@ bool fila_salvar(FILA* fila, char* destino)
   FILE *fp_fila = fopen(destino, "wb");
   if (!fp_fila) return false;
 
-  do
+  for (int i = 0; i < fila_tamanho(fila); i++)
   {
-    str_paciente = paciente_para_string(paciente, &tamanho_str_paciente);
+    str_paciente = paciente_para_string(fila->pacientes[(fila->inicio + i) % CAP_MAX], &tamanho_str_paciente);
 
     if (str_paciente)
     {
@@ -283,10 +242,7 @@ bool fila_salvar(FILA* fila, char* destino)
         free(str_paciente);
         str_paciente = NULL;
     }
-
-    it = it->prox;
   }
-  while (it != fila->inicio);
 
   fclose(fp_fila); 
   fp_fila = NULL;
