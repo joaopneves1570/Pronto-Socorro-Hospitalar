@@ -1,5 +1,6 @@
 #include "../include/fila.h"
 #include "../include/paciente.h" 
+#include <stdio.h>
 #include <stdlib.h>
 
 typedef struct no_ NO;
@@ -12,7 +13,7 @@ typedef struct no_ NO;
 struct no_
 {
   NO *prox;
-  PACIENTE *pac;
+  PACIENTE *paciente;
 };
 
 /**
@@ -52,14 +53,14 @@ FILA *fila_criar()
  * @param pac Ponteiro para o paciente a ser inserido.
  * @return true se a inserção foi bem-sucedida, false caso contrário.
  */
-bool fila_inserir(FILA *fila, PACIENTE *pac)
+bool fila_inserir(FILA *fila, PACIENTE *paciente)
 {
   if ((fila != NULL) && (!fila_cheia(fila)))
   {
     NO *novo = (NO *)malloc(sizeof(NO));
     if (novo == NULL) return false; 
 
-    novo->pac = pac;
+    novo->paciente = paciente;
     novo->prox = NULL;
 
     if (fila_vazia(fila))
@@ -87,7 +88,7 @@ PACIENTE *fila_remover(FILA *fila)
   if ((fila != NULL) && (!fila_vazia(fila)))
   {
     NO *atual = fila->inicio;
-    PACIENTE *pac = atual->pac;
+    PACIENTE *pac = atual->paciente;
 
     fila->inicio = atual->prox;
     free(atual); 
@@ -180,9 +181,9 @@ PACIENTE *fila_buscar(FILA *fila, char cpf[])
     while (aux != NULL)
     {
       // Compara o CPF do paciente atual com o CPF buscado
-      if (strcmp(paciente_obter_cpf(aux->pac), cpf) == 0)
+      if (strcmp(paciente_obter_cpf(aux->paciente), cpf) == 0)
       {
-        return aux->pac; // Retorna o paciente se encontrou
+        return aux->paciente; // Retorna o paciente se encontrou
       }
       aux = aux->prox;
     }
@@ -213,9 +214,82 @@ void fila_imprimir(FILA *fila)
     while(atual != NULL)
     {
       printf("%d. ", posicao++);
-      paciente_imprimir(atual->pac); // Imprime o nome do paciente
+      paciente_imprimir(atual->paciente); // Imprime o nome do paciente
       atual = atual->prox;
     }
     printf("----------------------\n");
   }
+}
+
+FILA* fila_carregar(char* origem, LISTA* lista)
+{
+  FILA* fila = fila_criar();
+
+  if (fila == NULL) return false;
+
+  FILE* fp_fila = fopen(origem, "rb");
+  if (fp_fila == NULL) return false;
+
+  int tamanho_str_paciente;
+
+  while (fread(&tamanho_str_paciente, sizeof(int), 1, fp_fila) == 1)
+  {
+    char *buffer = malloc((tamanho_str_paciente + 1) * sizeof(char));
+
+    if (buffer == NULL)
+    {
+      fclose(fp_fila);
+      return false;
+    }
+
+    fread(buffer, sizeof(char), tamanho_str_paciente, fp_fila);
+    
+    char cpf_temp[12];
+    strncpy(cpf_temp, buffer, 11);
+    cpf_temp[11] = '\0';
+    
+    PACIENTE* paciente = lista_buscar(lista, cpf_temp);
+
+    if (paciente) fila_inserir(fila, paciente);
+
+    free(buffer);
+  }
+
+  fclose(fp_fila);
+
+  return true;
+}
+
+bool fila_salvar(FILA* fila, char* destino)
+{
+  if (fila == NULL) return false;
+
+  NO* it = fila->inicio;
+  PACIENTE* paciente;
+  char *str_paciente;
+  int tamanho_str_paciente;
+
+  FILE *fp_fila = fopen(destino, "wb");
+  if (!fp_fila) return false;
+
+  do
+  {
+    str_paciente = paciente_para_string(paciente, &tamanho_str_paciente);
+
+    if (str_paciente)
+    {
+        fwrite(&tamanho_str_paciente, sizeof(int), 1, fp_fila);
+        fwrite(str_paciente, sizeof(char), tamanho_str_paciente, fp_fila);
+        free(str_paciente);
+        str_paciente = NULL;
+    }
+
+    it = it->prox;
+  }
+  while (it != fila->inicio);
+
+  fclose(fp_fila); 
+  fp_fila = NULL;
+
+  return true;
 }

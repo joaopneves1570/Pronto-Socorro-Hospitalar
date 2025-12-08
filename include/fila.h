@@ -2,6 +2,7 @@
 #ifndef FILA_H
 	#define FILA_H
   	#include "paciente.h"
+    #include "lista.h"
 
 	typedef struct fila_ FILA;
 
@@ -15,5 +16,7 @@
 	bool fila_vazia(FILA *fila);
 	bool fila_cheia(FILA *fila);
 	void fila_imprimir(FILA *fila);
+	FILA* fila_carregar(char* origem, LISTA* lista);
+  bool fila_salvar(FILA* fila, char* destino);
 	  
 #endif

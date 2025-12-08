@@ -265,19 +265,27 @@ PACIENTE *paciente_ler(LISTA *lista)
 int main()
 {
   LISTA *lista = lista_criar();
-  FILA* filas[5];
-  int ultima_posicao = 0;
 
-  for (int prioridade = 0; prioridade < 5; prioridade++)
+  FILA* filas[5];
+
+  char caminho[50];
+
+  for (int i = 0; i < 5; i++)
   {
-    filas[prioridade] = fila_criar();
-    if (filas[prioridade] == NULL)
+    sprintf(caminho, "data/fila_%d.bin", i);
+
+    filas[i] = fila_carregar(caminho, lista);
+
+    if (filas[i] == NULL)
     {
-      for (int i = 0; i < prioridade; i++) fila_apagar(&filas[i]);
+      for (int j = 0; j < i; j++) fila_apagar(&filas[i]);
+
+      lista_apagar(&lista);
+      return -1;
     }
-    lista_apagar(&lista);
-    return -1;
   }
+
+  int ultima_posicao = 0;
 
 //   if (!LOAD(&lista, &fila))
 //   {
@@ -354,8 +362,23 @@ int main()
 
       paciente_definir_senha(paciente, senha);
 
-      if (fila_inserir(filas[prioridade], paciente))
+      bool esta_na_fila = false;
+
+      for (int i = 0; i < 5; i++)
+      {
+        if (fila_buscar(filas[i], cpf) != NULL)
+        {
+          esta_na_fila = true;
+          break;
+        }
+      }
+
+      if (esta_na_fila)
+        printf(ANSI_COLOR_RED "[ERRO] Paciente já está na fila de espera!\n" ANSI_COLOR_RESET);
+      else if (fila_inserir(filas[prioridade], paciente))
         printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente adicionado à fila de espera!\n" ANSI_COLOR_RESET);
+      else
+        printf(ANSI_COLOR_RED "[ERRO] Paciente não pode ser adicionado à fila de espera!\n" ANSI_COLOR_RESET);
 
       free(cpf);
       break;
