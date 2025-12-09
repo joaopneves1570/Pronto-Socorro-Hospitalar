@@ -8,13 +8,14 @@
     #include "paciente.h"
     #include "historico.h"
 
+    #define max(a,b) (a > b ? a : b)
     typedef struct lista_ LISTA;
 
     LISTA* lista_criar();
 
     bool lista_inserir(LISTA* l, PACIENTE* p);
     PACIENTE* lista_remover(LISTA* l, PACIENTE* p);
-    PACIENTE* lista_remover_inicio(LISTA* l);
+    PACIENTE* lista_remover_ultimo(LISTA* l);
     bool lista_vazia(LISTA* l);
     bool lista_cheia(LISTA* l); 
 
@@ -22,5 +23,7 @@
     
     void lista_mostrar(LISTA* l);
     void lista_apagar(LISTA** l);
+
+    
 
 #endif

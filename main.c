@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h> 
 
 // Inclusões para limpar a tela de forma portável (Windows/Linux)
 #ifdef _WIN32
@@ -17,7 +17,7 @@
 #define LIMPAR_TELA "clear"
 #endif
 
-// Definições de cores e estilos ANSI para o terminal
+// Definições de cores e estilos ANSI
 #define ANSI_COLOR_RESET   "\x1b[0m"
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -25,430 +25,351 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_STYLE_BOLD    "\x1b[1m"
 
-/**
- * @brief Limpa a tela do console.
- */
-void limpar_tela()
-{
-    system(LIMPAR_TELA);
-}
+void limpar_tela() { system(LIMPAR_TELA); }
 
-/**
- * @brief Pausa a execução e aguarda o usuário pressionar Enter.
- */
 void pausar_para_continuar()
 {
     printf("\n" ANSI_STYLE_BOLD "Pressione Enter para continuar..." ANSI_COLOR_RESET);
-    // Limpa o buffer de entrada antes de esperar pelo Enter
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
     getchar();
 }
 
-/**
- * @brief Imprime um cabeçalho padronizado e limpa a tela.
- * @param titulo O texto a ser exibido no cabeçalho.
- */
 void imprimir_cabecalho(const char *titulo)
 {
     limpar_tela();
     printf(ANSI_STYLE_BOLD ANSI_COLOR_CYAN "--- %s ---\n\n" ANSI_COLOR_RESET, titulo);
 }
 
-/**
- * @brief Exibe o menu principal de opções.
- * @param opcoes A matriz de strings com as opções do menu.
- */
-void exibir_menu_principal(char opcoes[][64])
+// Menu conforme especificação do Projeto + Extras úteis
+void exibir_menu_principal()
 {
     limpar_tela();
-    printf(ANSI_STYLE_BOLD ANSI_COLOR_CYAN "--- Sistema de Gestão de Pacientes ---\n\n" ANSI_COLOR_RESET);
-    for (int i = 0; i < 8; i++)
-    {
-        printf("%s\n", opcoes[i]);
-    }
-    printf("\nEscolha uma das opções acima: ");
+    printf(ANSI_STYLE_BOLD ANSI_COLOR_CYAN "--- Pronto Socorro SUS (V2) ---\n\n" ANSI_COLOR_RESET);
+    printf("1. Registrar Entrada (Cadastro/Fila)\n");
+    printf("2. Remover Paciente (Do Sistema)\n");
+    printf("3. Listar Todos os Pacientes\n");
+    printf("4. Buscar Paciente por ID (CPF)\n");
+    printf("5. Mostrar Fila de Espera\n");
+    printf("6. Dar Alta ao Paciente (Atendimento)\n");
+    printf("7. Sair\n");
+    printf("-------------------------------\n");
+    printf("8. [Extra] Gerenciar Histórico (Manual)\n"); 
+    printf("\nEscolha uma opção: ");
 }
 
-
-// Opções do menu principal
 typedef enum
 {
-    REGISTRAR_PACIENTE = 1,
-    REGISTRAR_OBITO_DE_PACIENTE = 2,
-    ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO = 3,
-    DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO = 4,
-    CHAMAR_PACIENTE_PARA_ATENDIMENTO = 5,
-    MOSTRAR_LISTA_DE_ESPERA = 6,
-    MOSTRAR_HISTORICO_DO_PACIENTE = 7,
-    SAIR = 8,
+    REGISTRAR_ENTRADA = 1,
+    REMOVER_PACIENTE = 2,
+    LISTAR_PACIENTES = 3,
+    BUSCAR_PACIENTE = 4,
+    MOSTRAR_FILA = 5,
+    DAR_ALTA = 6,
+    SAIR = 7,
+    EXTRA_HISTORICO = 8
 } Opcao;
 
-/**
- * @brief Lê o input do usuário, repetindo e avisando caso for inválido
- *
- * @return a enum correspondente à opção escolhida
- */
 Opcao escolher_opcao()
 {
-    int opcao_escolhida;
-    Opcao opcao_escolhida_;
-
-    // Repete a tentativa de escolha até uma escolha válida
-    do
-    {
-        scanf("%d", &opcao_escolhida);
-        getchar();
-
-        printf("\n");
-
-        // Confere se a opção escolhida pelo usuário está no intervalo válido
-        if (opcao_escolhida < 1 || opcao_escolhida > 8)
-            printf("Opção inválida! Escolha uma das opções acima (1-8): ");
-    } while (opcao_escolhida < 1 || opcao_escolhida > 8);
-
-    opcao_escolhida_ = (Opcao)opcao_escolhida;
-    return opcao_escolhida_;
+    int opcao;
+    do {
+        scanf("%d", &opcao);
+        getchar(); // Limpar buffer
+        if (opcao < 1 || opcao > 8) printf("Opção inválida! Tente novamente: ");
+    } while (opcao < 1 || opcao > 8);
+    return (Opcao)opcao;
 }
 
-/**
- * @brief Altera a string formatando-a como xxxxxxxxxxxx + \0 + lixo
- *
- * @param cpf chave única do paciente
- */
+// --- Funções Auxiliares de CPF ---
+
 void formatar_cpf(char cpf[])
 {
     int tamanho = 0;
-
-    // Itera sobre os caracteres deslocando cada dígito para esquerda de acordo com o número de caracteres estranhos encontrados
-    for (int i = 0; cpf[i] != '\0'; i++)
-    {
-        // printf("%c", cpf[i]);
-        if (isdigit(cpf[i]))
-        {
+    for (int i = 0; cpf[i] != '\0'; i++) {
+        if (isdigit(cpf[i])) {
             cpf[tamanho] = cpf[i];
             tamanho++;
         }
     }
-
     cpf[tamanho] = '\0';
 }
 
-/**
- * @brief formata o CPF e confere se ele é válido, avisando o usuário caso contrário
- *
- * @param cpf chave única do paciente
- * @return true se o CPF é valido, false caso contrário
- */
 bool eh_cpf_valido(char cpf[])
 {
     formatar_cpf(cpf);
-
-    int digitos_iguais_ao_primeiro = 0;
-
-    // É inválido se há caracteres estranhos na string
-    for (int i = 0; i < 11; i++)
-    {
-        if (cpf[i] == cpf[0])
-            digitos_iguais_ao_primeiro++;
-        if (cpf[i] == '\0')
-        {
-            printf("CPF inválido! (Muito curto)");
-            return false;
-        }
-        else if (!isdigit(cpf[i]))
-        {
-            printf("CPF inválido! (Caracteres estranhos)");
-            return false;
-        }
-    }
-
-    if (digitos_iguais_ao_primeiro == 11)
-    {
-        printf("CPF inválido! (Combinação proibida)");
+    if (strlen(cpf) != 11) {
+        printf("CPF inválido! (Tamanho incorreto)\n");
         return false;
     }
-
-    // Algoritmo da verificação de CPF
-    int soma = 0, dv[2];
-
-    // Primeiro dígito verificador
-    for (int i = 0; i < 9; i++)
-        soma += (cpf[i] - '0') * (10 - i);
-
-    dv[0] = soma % 11 > 1 ? 11 - soma % 11 : 0;
-
-    // Confere se o primeiro dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-    if (cpf[9] - '0' != dv[0])
-    {
-        printf("CPF inválido! (Esse CPF não existe)");
-        return false;
-    }
-
-    soma = 0;
-
-    // Segundo dígito verificador
-    for (int i = 0; i < 10; i++)
-        soma += (cpf[i] - '0') * (11 - i);
-
-    dv[1] = soma % 11 > 1 ? 11 - soma % 11 : 0;
-
-    // Confere se o segundo dígito verificador fornecido é o que deveria ser de acordo com o algoritmo
-    if (cpf[10] - '0' != dv[1])
-    {
-        printf("CPF inválido! (Esse CPF não existe)");
-        return false;
-    }
-
-    // Se não falhar em nenhum teste, retorna verdadeiro
-    return true;
+    return true; 
 }
 
-/**
- * @brief Pede que o usuário digite um CPF, aloca a string dinamicamente para recebe-lo e testa se é válido
- *
- * @return um ponteiro para char de 15 posições alocado dinamicamente se válido, NULL caso contrário
- */
 char *cpf_ler()
 {
-    // Tenta alocar o string
     char *cpf = calloc(16, sizeof(char));
+    if (!cpf) return NULL;
 
-    // Se falhar retorna um ponteiro nulo
-    if (cpf == NULL)
-        return NULL;
-
-    // Mostra a instrução TODO:: Também confere se é valido, att a descrição
-    printf("Digite o cpf: ");
+    printf("Digite o CPF (apenas números): ");
     fgets(cpf, 16, stdin);
-    cpf[14] = '\0';
-    printf("\n");
+    cpf[strcspn(cpf, "\n")] = '\0'; 
 
-    if (!eh_cpf_valido(cpf))
-    {
+    if (!eh_cpf_valido(cpf)) {
         free(cpf);
-        cpf = NULL;
+        return NULL;
     }
-
-    // printf("CPF válido.\n");
     return cpf;
 }
 
-/**
- * @brief Tenta obter um paciente da lista de acordo com um CPF que o cliente digitará
- *
- * @param lista a lista de pacientes
- * @return o paciente com o CPF fornecido pelo cliente, NULL caso algo dê errado
- */
-PACIENTE *paciente_ler(LISTA *lista)
+int ler_prioridade_interface()
 {
-    PACIENTE *paciente = NULL;
-    char *cpf = cpf_ler();
+    int p;
+    printf("\n--- Classificação de Risco ---\n");
+    printf("1. Emergência (Risco de morte imediato)\n");
+    printf("2. Muito Urgente (Grave, risco de evoluir)\n");
+    printf("3. Urgente (Grave moderado)\n");
+    printf("4. Pouco Urgente\n");
+    printf("5. Não Urgência\n");
+    printf("Selecione a prioridade (1-5): ");
+    
+    do {
+        scanf("%d", &p);
+        getchar(); // Limpar buffer
+        if (p < 1 || p > 5) printf("Opção inválida. Digite entre 1 e 5: ");
+    } while (p < 1 || p > 5);
 
-    if (cpf)
-        paciente = lista_buscar(lista, cpf);
-
-    free(cpf);
-
-    return paciente;
+    return p - 1; // Retorna índice 0-4
 }
+
+// --- Função Main Principal ---
 
 int main()
 {
-    LISTA *lista = lista_criar();
-    FILA *fila = fila_criar();
+    // Inicialização das estruturas
+    LISTA *lista = lista_criar(); 
+    FILA *fila = fila_criar();    
 
-    if (!LOAD(&lista, &fila))
-    {
-        printf(ANSI_COLOR_RED "[ERRO] Falha ao carregar os dados. O programa será encerrado.\n" ANSI_COLOR_RESET);
-        return -1;
+    // Carregar dados do disco
+    if (!LOAD(&lista, &fila)) {
+        printf(ANSI_COLOR_YELLOW "[AVISO] Base de dados nova ou erro ao carregar. Iniciando vazio.\n" ANSI_COLOR_RESET);
+        pausar_para_continuar();
+    } else {
+        printf(ANSI_COLOR_GREEN "[SUCESSO] Dados carregados do disco.\n" ANSI_COLOR_RESET);
+        #ifdef _WIN32
+        Sleep(1000);
+        #else
+        sleep(1);
+        #endif
     }
 
-    char opcoes[][64] =
-        {
-            {"1. Registrar paciente"},
-            {"2. Registrar óbito de paciente"},
-            {"3. Adicionar procedimento ao histórico"},
-            {"4. Desfazer último procedimento"},
-            {"5. Chamar paciente para atendimento"},
-            {"6. Mostrar fila de espera"},
-            {"7. Mostrar histórico do paciente"},
-            {"8. Sair"},
-        };
+    Opcao opcao;
 
-    Opcao opcao_escolhida;
+    do {
+        exibir_menu_principal();
+        opcao = escolher_opcao();
 
-    do
-    {
-        exibir_menu_principal(opcoes);
-        opcao_escolhida = escolher_opcao();
-
-        // Imprime um cabeçalho para a ação escolhida
-        if (opcao_escolhida != SAIR)
+        switch (opcao)
         {
-            imprimir_cabecalho(opcoes[opcao_escolhida - 1]);
-        }
-
-        switch (opcao_escolhida)
+        case REGISTRAR_ENTRADA:
         {
-        case REGISTRAR_PACIENTE:
-        {
+            imprimir_cabecalho("Registrar Entrada / Triagem");
             char *cpf = cpf_ler();
-            if (cpf == NULL)
-                break; // A mensagem de erro de CPF já foi exibida em eh_cpf_valido
+            if (cpf) {
+                PACIENTE *pac = lista_buscar(lista, cpf);
+                
+                // 1. Lógica de Cadastro (Se não existir)
+                if (pac == NULL) {
+                    char nome[256];
+                    printf("Paciente não cadastrado. Digite o Nome Completo: ");
+                    fgets(nome, 256, stdin);
+                    nome[strcspn(nome, "\n")] = '\0'; // Remove o \n
 
-            PACIENTE *paciente = lista_buscar(lista, cpf);
-
-            if (paciente)
-            {
-                printf(ANSI_COLOR_YELLOW "[INFO] Paciente com CPF %s já está cadastrado.\n" ANSI_COLOR_RESET, cpf);
-            }
-            else
-            {
-                char nome[256];
-                printf("Digite o nome do paciente: ");
-                fgets(nome, sizeof(nome), stdin);
-                nome[strcspn(nome, "\n")] = '\0';
-                printf("\n");
-
-                paciente = paciente_criar(nome, cpf);
-                lista_inserir(lista, paciente);
-                printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente cadastrado com sucesso!\n" ANSI_COLOR_RESET);
-            }
-
-            if (fila_inserir(fila, paciente))
-                printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente adicionado à fila de espera!\n" ANSI_COLOR_RESET);
-
-            free(cpf);
-            break;
-        }
-        case REGISTRAR_OBITO_DE_PACIENTE:
-        {
-            PACIENTE *paciente = paciente_ler(lista);
-
-            if (paciente)
-            {
-                if (fila_buscar(fila, paciente_obter_cpf(paciente)))
-                {
-                    printf(ANSI_COLOR_YELLOW "[ALERTA] O paciente está na fila de espera e não pode ser removido.\n" ANSI_COLOR_RESET);
-                    break;
+                    pac = paciente_criar(nome, cpf);
+                    lista_inserir(lista, pac);
+                    printf(ANSI_COLOR_GREEN "[NOVO] Paciente cadastrado no sistema.\n" ANSI_COLOR_RESET);
+                } else {
+                    printf(ANSI_COLOR_CYAN "[ENCONTRADO] Paciente já possui cadastro: %s\n" ANSI_COLOR_RESET, paciente_obter_nome(pac));
                 }
-                paciente = lista_remover(lista, paciente);
-                paciente_apagar(&paciente);
 
-                printf(ANSI_COLOR_GREEN "[SUCESSO] Registro do paciente removido permanentemente.\n" ANSI_COLOR_RESET);
-            }
-            else
-                printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado!\n" ANSI_COLOR_RESET);
-
-            break;
-        }
-        case ADICIONAR_PROCEDIMENTO_AO_HISTORICO_MEDICO:
-        {
-            PACIENTE *paciente = paciente_ler(lista);
-            if (paciente)
-            {
-                char procedimento[256];
-                printf("Descreva o procedimento realizado: ");
-                fgets(procedimento, sizeof(procedimento), stdin);
-                procedimento[strcspn(procedimento, "\n")] = '\0';
-                printf("\n");
-
-                HISTORICO *historico = paciente_obter_historico(paciente);
-                if (historico_inserir(historico, procedimento))
-                    printf(ANSI_COLOR_GREEN "[SUCESSO] Procedimento adicionado ao histórico.\n" ANSI_COLOR_RESET);
-                else
-                    printf(ANSI_COLOR_RED "[ERRO] Não foi possível adicionar o procedimento.\n" ANSI_COLOR_RESET);
-            }
-            else
-                printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
-
-            break;
-        }
-        case DESFAZER_PROCEDIMENTO_DO_HISTORICO_MEDICO:
-        {
-            PACIENTE *paciente = paciente_ler(lista);
-            if (paciente)
-            {
-                HISTORICO *historico = paciente_obter_historico(paciente);
-                if (historico_vazio(historico))
-                {
-                    printf(ANSI_COLOR_YELLOW "[INFO] O histórico do paciente está vazio. Nada a desfazer.\n" ANSI_COLOR_RESET);
-                }
-                else
-                {
-                    char *procedimento = historico_remover(historico);
-                    if (procedimento)
-                    {
-                        printf(ANSI_COLOR_GREEN "[SUCESSO] O seguinte procedimento foi desfeito e removido do histórico:\n" ANSI_COLOR_RESET);
-                        printf("'%s'\n", procedimento);
-                        free(procedimento);
+                // 2. Verifica se já está na fila usando a função do TAD Paciente
+                if (paciente_esta_na_fila(pac)) {
+                     printf(ANSI_COLOR_YELLOW "[ALERTA] Paciente já está na fila de espera.\n" ANSI_COLOR_RESET);
+                } else {
+                    // 3. Pergunta a prioridade pro usuário
+                    int prioridade = ler_prioridade_interface();
+                    
+                    // 4. Manda inserir passando a prioridade
+                    if (fila_inserir(fila, pac, prioridade)) {
+                        printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente encaminhado para fila.\n" ANSI_COLOR_RESET);
+                    } else {
+                        printf(ANSI_COLOR_RED "[ERRO] Falha ao inserir na fila.\n" ANSI_COLOR_RESET);
                     }
-                    else
-                        printf(ANSI_COLOR_RED "[ERRO] Não foi possível remover o último procedimento.\n" ANSI_COLOR_RESET);
+                }
+                
+                free(cpf);
+            }
+            break;
+        }
+
+        case REMOVER_PACIENTE:
+        {
+            imprimir_cabecalho("Remover Paciente do Sistema");
+            char *cpf = cpf_ler();
+            if (cpf) {
+                PACIENTE *pac = lista_buscar(lista, cpf);
+                if (pac) {
+                    if (paciente_esta_na_fila(pac)) {
+                        printf(ANSI_COLOR_YELLOW "[ALERTA] Paciente está na fila de espera! Dê alta ou remova da fila antes de apagar o registro.\n" ANSI_COLOR_RESET);
+                    } else {
+                        lista_remover(lista, pac);
+                        printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente removido dos registros do hospital.\n" ANSI_COLOR_RESET);
+                    }
+                } else {
+                    printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
+                }
+                free(cpf);
+            }
+            break;
+        }
+
+        case LISTAR_PACIENTES:
+        {
+            imprimir_cabecalho("Lista Geral de Pacientes");
+            lista_mostrar(lista); 
+            break;
+        }
+
+        case BUSCAR_PACIENTE:
+        {
+            imprimir_cabecalho("Buscar Paciente");
+            char *cpf = cpf_ler();
+            if (cpf) {
+                PACIENTE *pac = lista_buscar(lista, cpf);
+                if (pac) {
+                    printf("Nome: " ANSI_STYLE_BOLD "%s" ANSI_COLOR_RESET "\n", paciente_obter_nome(pac));
+                    printf("CPF: %s\n", paciente_obter_cpf(pac));
+                    
+                    if (paciente_esta_na_fila(pac)) 
+                        printf("Status: " ANSI_COLOR_YELLOW "Aguardando Atendimento\n" ANSI_COLOR_RESET);
+                    else 
+                        printf("Status: " ANSI_COLOR_GREEN "Sem pendências atuais\n" ANSI_COLOR_RESET);
+
+                    printf("\nDeseja visualizar o histórico médico? (s/n): ");
+                    char resp = getchar();
+                    if (resp == 's' || resp == 'S') {
+                         historico_imprimir(paciente_obter_historico(pac));
+                    }
+                } else {
+                    printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
+                }
+                free(cpf);
+            }
+            break;
+        }
+
+        case MOSTRAR_FILA:
+        {
+            imprimir_cabecalho("Fila de Espera (Prioridades)");
+            fila_imprimir(fila);
+            break;
+        }
+
+        case DAR_ALTA:
+        {
+            imprimir_cabecalho("Atendimento / Alta");
+            
+            if (fila_vazia(fila)) {
+                printf(ANSI_COLOR_YELLOW "Não há pacientes aguardando atendimento.\n" ANSI_COLOR_RESET);
+            } else {
+                PACIENTE *pac = fila_remover(fila);
+                
+                if (pac) {
+                    printf(ANSI_STYLE_BOLD "ATENDENDO PACIENTE: %s\n" ANSI_COLOR_RESET, paciente_obter_nome(pac));
+                    printf("CPF: %s\n\n", paciente_obter_cpf(pac));
+
+                    printf("Deseja registrar o procedimento realizado antes da alta? (s/n): ");
+                    char op;
+                    scanf(" %c", &op);
+                    getchar(); 
+
+                    if (op == 's' || op == 'S') {
+                        char proc[256];
+                        printf("Descreva o procedimento: ");
+                        fgets(proc, 256, stdin);
+                        proc[strcspn(proc, "\n")] = '\0';
+                        
+                        historico_inserir(paciente_obter_historico(pac), proc);
+                        printf(ANSI_COLOR_GREEN "[REGISTRADO] Procedimento salvo no histórico.\n" ANSI_COLOR_RESET);
+                    }
+
+                    printf(ANSI_COLOR_GREEN "\n[ALTA] Paciente liberado da emergência com sucesso.\n" ANSI_COLOR_RESET);
                 }
             }
-            else
-                printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
             break;
         }
-        case CHAMAR_PACIENTE_PARA_ATENDIMENTO:
+
+        case EXTRA_HISTORICO:
         {
-            if (fila_vazia(fila))
-            {
-                printf(ANSI_COLOR_YELLOW "[INFO] A fila de espera está vazia.\n" ANSI_COLOR_RESET);
-                break;
+            imprimir_cabecalho("Gestão Manual de Histórico");
+            char *cpf = cpf_ler();
+            if (cpf) {
+                PACIENTE *pac = lista_buscar(lista, cpf);
+                if (pac) {
+                    printf("Paciente: " ANSI_STYLE_BOLD "%s" ANSI_COLOR_RESET "\n", paciente_obter_nome(pac));
+                    printf("1. Adicionar Procedimento\n");
+                    printf("2. Desfazer Último\n");
+                    printf("3. Mostrar Histórico Completo\n");
+                    printf("Escolha: ");
+                    
+                    int h_op;
+                    scanf("%d", &h_op);
+                    getchar();
+
+                    HISTORICO *hist = paciente_obter_historico(pac);
+                    
+                    if (h_op == 1) {
+                        char proc[256];
+                        printf("Procedimento: ");
+                        fgets(proc, 256, stdin);
+                        proc[strcspn(proc, "\n")] = '\0';
+                        historico_inserir(hist, proc);
+                        printf(ANSI_COLOR_GREEN "Adicionado.\n" ANSI_COLOR_RESET);
+                    } else if (h_op == 2) {
+                        char *removido = historico_remover(hist);
+                        if (removido) {
+                            printf(ANSI_COLOR_YELLOW "Desfeito: %s\n" ANSI_COLOR_RESET, removido);
+                            free(removido);
+                        } else {
+                            printf(ANSI_COLOR_RED "Histórico vazio.\n" ANSI_COLOR_RESET);
+                        }
+                    } else if (h_op == 3) {
+                        printf("\n--- Visualização de Histórico ---\n");
+                        historico_imprimir(hist);
+                    } else {
+                        printf(ANSI_COLOR_RED "Opção inválida.\n" ANSI_COLOR_RESET);
+                    }
+                } else {
+                    printf(ANSI_COLOR_RED "Paciente não encontrado.\n" ANSI_COLOR_RESET);
+                }
+                free(cpf);
             }
-
-            PACIENTE *paciente = fila_remover(fila);
-            if (paciente)
-                printf(ANSI_COLOR_GREEN "Próximo paciente a ser atendido: %s" ANSI_STYLE_BOLD " (%s)\n" ANSI_COLOR_RESET, paciente_obter_nome(paciente), paciente_obter_cpf(paciente));
-            else
-                printf(ANSI_COLOR_RED "[ERRO] Falha ao chamar o próximo paciente.\n" ANSI_COLOR_RESET);
-
             break;
         }
-        case MOSTRAR_LISTA_DE_ESPERA:
-        {
-            if (fila_vazia(fila))
-                printf(ANSI_COLOR_YELLOW "[INFO] A fila de espera está vazia.\n" ANSI_COLOR_RESET);
-            else
-                fila_imprimir(fila);
 
-            break;
-        }
-        case MOSTRAR_HISTORICO_DO_PACIENTE:
-        {
-            PACIENTE *paciente = paciente_ler(lista);
-            if (paciente)
-            {
-                HISTORICO *historico = paciente_obter_historico(paciente);
-                printf("Histórico de " ANSI_STYLE_BOLD "%s" ANSI_COLOR_RESET ":\n", paciente_obter_nome(paciente));
-                historico_imprimir(historico);
-            }
-            else
-                printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
-
-            break;
-        }
         case SAIR:
-            imprimir_cabecalho("Saindo do Sistema");
-            printf("Salvando todos os dados antes de encerrar...\n");
+            imprimir_cabecalho("Encerrando Sistema");
+            printf("Salvando dados em disco...\n");
             break;
         }
 
-        if (opcao_escolhida != SAIR)
-        {
-            pausar_para_continuar();
-        }
+        if (opcao != SAIR) pausar_para_continuar();
 
-    } while (opcao_escolhida != SAIR);
+    } while (opcao != SAIR);
 
     SAVE(&lista, &fila);
-    printf(ANSI_COLOR_GREEN "[SUCESSO] Dados salvos. Até logo!\n" ANSI_COLOR_RESET);
-
     lista_apagar(&lista);
     fila_apagar(&fila);
 
+    printf(ANSI_COLOR_GREEN "Sistema encerrado com segurança.\n" ANSI_COLOR_RESET);
     return 0;
 }

@@ -6,8 +6,9 @@
 	typedef struct fila_ FILA;
 
 	FILA *fila_criar(void);
-	bool fila_inserir(FILA *fila, PACIENTE *paciente);
+	bool fila_inserir(FILA *fila, PACIENTE *paciente, int prioridade);
 	PACIENTE *fila_remover(FILA *fila);
+	PACIENTE *fila_remover_com_prioridade(FILA* fila, int* prioridade);
 	PACIENTE *fila_buscar(FILA *fila, char cpf[]);
 	void fila_apagar(FILA **fila);
 	PACIENTE *fila_frente(FILA *fila);

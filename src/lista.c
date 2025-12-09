@@ -1,4 +1,7 @@
 #include "../include/lista.h"
+#include <string.h> // Necessário para strcmp
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef struct no_ NO;
 struct no_{
@@ -19,7 +22,6 @@ LISTA* lista_criar(void){
     if (lista != NULL){
         lista->raiz = NULL;
     }
-
     return lista;
 }
 
@@ -31,7 +33,6 @@ NO* lista_cria_no(PACIENTE* p){
         novo->esq = NULL;
         novo->pac = p;
     }
-
     return novo;
 }
 
@@ -39,9 +40,10 @@ int lista_altura_no(NO* raiz){
     if (raiz != NULL){
         return raiz->altura;
     }
-
     return -1;
 }
+
+// --- Rotações ---
 
 NO* rodar_direita(NO* a){
     NO* b = a->esq;
@@ -77,18 +79,21 @@ NO* rodar_esquerda_direita(NO* a){
     return rodar_direita(a);
 }
 
+// --- Inserção ---
+
 NO* lista_inserir_no(NO* raiz, PACIENTE* p){
     if (raiz == NULL)
         raiz = lista_cria_no(p);
     
-    long int chave_item = atol(paciente_obter_cpf(p));
-    long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
+    // CORREÇÃO: Usando strcmp em vez de atol
+    int cmp = strcmp(paciente_obter_cpf(p), paciente_obter_cpf(raiz->pac));
 
-    if (chave_item < chave_raiz){
+    if (cmp < 0){
         raiz->esq = lista_inserir_no(raiz->esq, p);
-    } else if (chave_item > chave_raiz){
+    } else if (cmp > 0){
         raiz->dir = lista_inserir_no(raiz->dir, p);
     }
+    // Se cmp == 0, CPF é igual, não insere duplicado (ou atualiza, dependendo da lógica desejada)
 
     raiz->altura = max(lista_altura_no(raiz->esq), lista_altura_no(raiz->dir)) + 1;
     int FB = lista_altura_no(raiz->esq) - lista_altura_no(raiz->dir);
@@ -110,14 +115,16 @@ NO* lista_inserir_no(NO* raiz, PACIENTE* p){
 
 bool lista_inserir(LISTA* l, PACIENTE* p){
     if (l != NULL){
-        return ((l->raiz = lista_inserir_no(l->raiz, p)) != NULL);
+        // Verifica se a raiz mudou (pode ter rotacionado ou sido criada)
+        l->raiz = lista_inserir_no(l->raiz, p);
+        return (l->raiz != NULL); 
     }
-
     return false;
 }
 
-void troca_max_esq(NO* atual, NO* raiz, NO* ant, PACIENTE** pac){
+// --- Remoção ---
 
+void troca_max_esq(NO* atual, NO* raiz, NO* ant, PACIENTE** pac){
     if (atual->dir != NULL){
         troca_max_esq(atual->dir, raiz, atual, pac);
         return;
@@ -135,16 +142,18 @@ void troca_max_esq(NO* atual, NO* raiz, NO* ant, PACIENTE** pac){
 
     free(atual);
     atual = NULL;
-    
 }
 
-NO* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
+// CORREÇÃO: Recebe char* chave em vez de long int
+NO* lista_remover_no(NO* raiz, char* chave, PACIENTE** pac){
     NO* p;
-    long int chave_raiz = atol(paciente_obter_cpf(raiz->pac));
+    
+    if (raiz == NULL) return NULL;
 
-    if (raiz == NULL)
-        return NULL;
-    if (chave == chave_raiz){
+    // CORREÇÃO: Usando strcmp
+    int cmp = strcmp(chave, paciente_obter_cpf(raiz->pac));
+
+    if (cmp == 0){ // Encontrou
         if (raiz->esq == NULL || raiz->dir == NULL){
             p = raiz;
 
@@ -156,23 +165,20 @@ NO* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
                 raiz = raiz->dir;
             else
                 raiz = raiz->esq;
-
             
             free(p);
             p = NULL;
-
         } else {
             troca_max_esq(raiz->esq, raiz, raiz, pac);
         }
-    } else if (chave < chave_raiz ){
+    } else if (cmp < 0){
         raiz->esq = lista_remover_no(raiz->esq, chave, pac);
-    } else if (chave > chave_raiz){
+    } else if (cmp > 0){
         raiz->dir = lista_remover_no(raiz->dir, chave, pac);
     }
 
     if (raiz != NULL){
         raiz->altura = max(lista_altura_no(raiz->esq), lista_altura_no(raiz->dir)) + 1;
-
         int FB = lista_altura_no(raiz->esq) - lista_altura_no(raiz->dir);
 
         if (FB == -2){
@@ -186,7 +192,6 @@ NO* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
             else
                 raiz = rodar_esquerda_direita(raiz);
         }
-        
     }
 
     return raiz;
@@ -195,60 +200,78 @@ NO* lista_remover_no(NO* raiz, long int chave, PACIENTE** pac){
 PACIENTE* lista_remover(LISTA* l, PACIENTE* p){
     if (l != NULL && !(lista_vazia(l))){
         PACIENTE* paciente_recuperado = NULL;
-        l->raiz = lista_remover_no(l->raiz, atol(paciente_obter_cpf(p)), &paciente_recuperado);
+        // Passa a string CPF direto
+        l->raiz = lista_remover_no(l->raiz, paciente_obter_cpf(p), &paciente_recuperado);
         return paciente_recuperado;
     }
-
     return NULL;
 }
 
+PACIENTE* lista_remover_ultimo(LISTA* l){
+    if (l != NULL && !(lista_vazia(l))){
+        PACIENTE* paciente_recuperado = NULL;
+        NO* atual = l->raiz;
+        
+        // CORREÇÃO: O loop deve verificar se 'atual' tem direita
+        while (atual->dir != NULL){
+            atual = atual->dir;
+        }
+        
+        // CORREÇÃO: Captura o CPF antes de remover
+        // IMPORTANTE: Devemos chamar remover_no a partir da RAIZ (l->raiz) para rebalancear a árvore inteira,
+        // e não a partir de 'atual' (que quebraria a árvore).
+        char cpf_ultimo[16]; // Buffer seguro para guardar o CPF
+        strcpy(cpf_ultimo, paciente_obter_cpf(atual->pac));
+
+        l->raiz = lista_remover_no(l->raiz, cpf_ultimo, &paciente_recuperado);
+        
+        return paciente_recuperado;
+    }
+    return NULL;
+}
+
+// --- Utilidades ---
 
 bool lista_vazia(LISTA* l){
     if (l != NULL){
         return l->raiz == NULL;
     }
-
     return true;
 }
 
 bool lista_cheia(LISTA* l){
-    if (l != NULL){
-        NO* teste = (NO*)malloc(sizeof(NO));
-        if (teste == NULL){
-            return true;
-        }
-        free(teste);
-        teste = NULL;
-    }
-    return false;
+    return false; // Implementação dinâmica, nunca cheia (a menos que acabe RAM)
 }
 
-NO* lista_buscar_no(NO* raiz, long int cpf, PACIENTE** p){
+// CORREÇÃO: Recebe char* cpf em vez de long int
+NO* lista_buscar_no(NO* raiz, char* cpf, PACIENTE** p){
     if (raiz == NULL)
         return NULL;
     
-    long int cpf_raiz = atol(paciente_obter_cpf(raiz->pac));
+    // CORREÇÃO: strcmp
+    int cmp = strcmp(cpf, paciente_obter_cpf(raiz->pac));
     
-    if (cpf == cpf_raiz){
+    if (cmp == 0){
         *p = raiz->pac;
         return raiz;
     }
-    else if (cpf < cpf_raiz)
+    else if (cmp < 0)
         return lista_buscar_no(raiz->esq, cpf, p);
     else
         return lista_buscar_no(raiz->dir, cpf, p);
-    
 }
 
 PACIENTE* lista_buscar(LISTA* l, char* cpf){
     if (l != NULL){
         PACIENTE* paciente_buscado = NULL;
-        l->raiz = lista_buscar_no(l->raiz, atol(cpf), &paciente_buscado);
+        // Passa a string CPF direto
+        lista_buscar_no(l->raiz, cpf, &paciente_buscado);
         return paciente_buscado;
     }
-
     return NULL;
 }
+
+// --- Impressão e Limpeza ---
 
 void lista_em_ordem(NO* raiz, AcaoPaciente acao, void* contexto){
     if (raiz != NULL){
@@ -268,11 +291,11 @@ void lista_pre_ordem(NO* raiz, AcaoPaciente acao, void* contexto){
 
 void acao_imprimir_lista(PACIENTE* p, void* contexto){
     char* estado;
-    if (paciente_obter_estado(p) == 1)
+    if (paciente_esta_na_fila(p))
         estado = "NA FILA DE ATENDIMENTO";
     else
         estado = "FORA DA FILA DE ATENDIMENTO";
-
+    
     printf("NOME: %s\nCPF: %s\nESTADO: %s\n\n", paciente_obter_nome(p), paciente_obter_cpf(p), estado);  
 }
 
@@ -287,9 +310,9 @@ void lista_apagar_aux(NO* raiz){
     if (raiz != NULL){
         lista_apagar_aux(raiz->esq);
         lista_apagar_aux(raiz->dir);
-        paciente_apagar(&raiz->pac);
+        // Nota: O TAD Lista é "dono" do paciente? Se sim, apague.
+        paciente_apagar(&raiz->pac); 
         free(raiz);
-        raiz = NULL;
     }
 }
 

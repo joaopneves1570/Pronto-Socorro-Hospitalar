@@ -10,6 +10,7 @@ struct paciente_
 {
     char *nome;
     char *cpf;
+    bool fila;
     HISTORICO *hist;
 };
 
@@ -31,6 +32,7 @@ PACIENTE *paciente_criar(char nome[], char cpf[])
     p->nome = NULL;
     p->cpf = NULL;
     p->hist = NULL;
+    p->fila = false;
 
     // Aloca memória para o nome e copia
     p->nome = (char *)malloc(strlen(nome) + 1);
@@ -249,4 +251,24 @@ void paciente_imprimir(PACIENTE *paciente)
 {
     if (paciente != NULL)
         printf("%s\n", paciente_obter_nome(paciente));
+}
+
+bool paciente_esta_na_fila(PACIENTE* paciente){
+  if (paciente != NULL){
+    return paciente->fila == 1;
+  }
+
+  return false;
+}
+
+void paciente_ir_para_fila(PACIENTE* paciente){
+  if (paciente != NULL){
+    paciente->fila = 1;
+  }
+}
+
+void paciente_sair_da_fila(PACIENTE* paciente){
+  if (paciente != NULL){
+    paciente->fila = 0;
+  }
 }

@@ -71,7 +71,7 @@ bool historico_consultar(HISTORICO* hist, char* texto){
 void historico_imprimir(HISTORICO* hist){
     if (hist != NULL){
         for (int i = 0; i < hist->tamanho; i++){
-            printf("%S\n", hist->hist[i]);
+            printf("%s\n", hist->hist[i]);
         }
     }
 }

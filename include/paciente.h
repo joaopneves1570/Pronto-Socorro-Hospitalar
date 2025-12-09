@@ -18,5 +18,8 @@
     void paciente_imprimir(PACIENTE* paciente);
     char* paciente_para_string(PACIENTE* paciente, int* tamanho);
     PACIENTE* paciente_de_string(char* buffer);
+    bool paciente_esta_na_fila(PACIENTE* paciente);
+    void paciente_ir_para_fila(PACIENTE* paciente);
+    void paciente_sair_da_fila(PACIENTE* paciente);
 
 #endif
