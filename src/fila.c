@@ -4,34 +4,40 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TAM_MAX 50 // Capacidade total da fila (soma de todas as prioridades)
-#define NUM_PRIORIDADES 5
+#define TAM_MAX 50 ///< Capacidade máxima total da fila
+#define NUM_PRIORIDADES 5 ///< Quantidade de níveis de prioridade (1 a 5)
 
 typedef struct no_ NO;
 
 /**
- * @brief Estrutura de um nó da fila.
+ * @brief Nó da fila encadeada.
+ * 
+ * Cada nó armazena um ponteiro para um paciente e
+ * um ponteiro para o próximo nó da fila da mesma prioridade.
  */
 struct no_
 {
-    NO *prox;
-    PACIENTE *pac;
+    NO *prox;      ///< Próximo nó na fila
+    PACIENTE *pac; ///< Paciente armazenado no nó
 };
 
 /**
  * @brief Estrutura da fila de prioridades.
- * Utiliza um vetor de ponteiros para gerenciar 5 filas independentes,
- * uma para cada nível de prioridade.
+ *
+ * Representa 5 filas independentes (uma para cada prioridade),
+ * armazenadas em vetores de ponteiros de início e fim.
  */
 struct fila_
 {
-    NO *inicio[NUM_PRIORIDADES]; // Vetor de inícios (Prioridade 1 no índice 0)
-    NO *fim[NUM_PRIORIDADES];    // Vetor de fins
-    int tamanho;                 // Quantidade total de pacientes na estrutura
+    NO *inicio[NUM_PRIORIDADES]; ///< Vetor de ponteiros para o início de cada fila
+    NO *fim[NUM_PRIORIDADES];    ///< Vetor de ponteiros para o fim de cada fila
+    int tamanho;                 ///< Quantidade total de pacientes na fila
 };
 
 /**
- * @brief Aloca e inicializa as 5 filas de prioridade.
+ * @brief Cria uma nova fila de prioridades.
+ *
+ * @return Ponteiro para FILA alocada e inicializada, ou NULL em caso de erro.
  */
 FILA *fila_criar()
 {
@@ -48,17 +54,23 @@ FILA *fila_criar()
     return fila;
 }
 
-
 /**
- * @brief Insere um paciente na fila de acordo com sua prioridade.
- * O(1) para inserção. A busca de duplicidade depende da implementação,
- * aqui é feita linearmente para garantir integridade, mas a inserção na estrutura é direta.
+ * @brief Insere um paciente na fila conforme sua prioridade.
+ *
+ * @param fila Ponteiro para a fila.
+ * @param pac Paciente a ser inserido.
+ * @param prioridade Prioridade do paciente (0 a 4).
+ *
+ * @return true se inserido com sucesso, false caso contrário.
+ *
+ * @note A verificação de duplicidade é realizada chamando
+ * paciente_esta_na_fila(), conforme requisito do projeto.
  */
 bool fila_inserir(FILA *fila, PACIENTE *pac, int prioridade)
 {
     if (fila == NULL || fila_cheia(fila)) return false;
 
-    // Verifica se o paciente já está na fila (Requisito do projeto)
+    // Verificar duplicidade
     if (paciente_esta_na_fila(pac))
     {
         printf("Paciente já se encontra na fila de espera.\n");
@@ -71,7 +83,7 @@ bool fila_inserir(FILA *fila, PACIENTE *pac, int prioridade)
     novo->pac = pac;
     novo->prox = NULL;
 
-    // Inserção na fila específica da prioridade (Bucket)
+    // Inserção na fila da prioridade
     if (fila->inicio[prioridade] == NULL)
     {
         fila->inicio[prioridade] = novo;
@@ -90,14 +102,18 @@ bool fila_inserir(FILA *fila, PACIENTE *pac, int prioridade)
 }
 
 /**
- * @brief Remove o paciente com a maior prioridade (menor índice).
- * Respeita a ordem de chegada dentro da mesma prioridade.
+ * @brief Remove o paciente de maior prioridade (menor índice).
+ *
+ * @param fila Ponteiro para a fila.
+ *
+ * @return O paciente removido, ou NULL se a fila estiver vazia.
+ *
+ * @note Entre pacientes da mesma prioridade, vale a ordem de chegada.
  */
 PACIENTE *fila_remover(FILA *fila)
 {
     if (fila == NULL || fila_vazia(fila)) return NULL;
 
-    // Procura na ordem de prioridade (0=Emergência até 4=Não Urgente)
     for (int i = 0; i < NUM_PRIORIDADES; i++)
     {
         if (fila->inicio[i] != NULL)
@@ -108,25 +124,30 @@ PACIENTE *fila_remover(FILA *fila)
             fila->inicio[i] = remover->prox;
             
             if (fila->inicio[i] == NULL)
-            {
                 fila->fim[i] = NULL;
-            }
 
             free(remover);
             fila->tamanho--;
             paciente_sair_da_fila(pac);
+
             return pac;
         }
     }
-
     return NULL;
 }
 
+/**
+ * @brief Remove o paciente de maior prioridade, informando a prioridade removida.
+ *
+ * @param fila Ponteiro para a fila.
+ * @param prioridade Ponteiro onde será armazenada a prioridade removida (0 a 4).
+ *
+ * @return Paciente removido, ou NULL caso a fila esteja vazia.
+ */
 PACIENTE *fila_remover_com_prioridade(FILA *fila, int* prioridade)
 {
     if (fila == NULL || fila_vazia(fila)) return NULL;
 
-    // Procura na ordem de prioridade (0=Emergência até 4=Não Urgente)
     for (int i = 0; i < NUM_PRIORIDADES; i++)
     {
         if (fila->inicio[i] != NULL)
@@ -137,22 +158,26 @@ PACIENTE *fila_remover_com_prioridade(FILA *fila, int* prioridade)
             *prioridade = i;
 
             fila->inicio[i] = remover->prox;
-            
+
             if (fila->inicio[i] == NULL)
-            {
                 fila->fim[i] = NULL;
-            }
 
             free(remover);
             fila->tamanho--;
             paciente_sair_da_fila(pac);
+
             return pac;
         }
     }
-
     return NULL;
 }
 
+/**
+ * @brief Verifica se a fila está cheia.
+ *
+ * @param fila Ponteiro para a fila.
+ * @return true se cheia, false caso contrário.
+ */
 bool fila_cheia(FILA *fila)
 {
     if (fila != NULL)
@@ -160,6 +185,12 @@ bool fila_cheia(FILA *fila)
     return true;
 }
 
+/**
+ * @brief Verifica se a fila está vazia.
+ *
+ * @param fila Ponteiro para a fila.
+ * @return true se vazia, false caso contrário.
+ */
 bool fila_vazia(FILA *fila)
 {
     if (fila != NULL)
@@ -167,11 +198,17 @@ bool fila_vazia(FILA *fila)
     return true;
 }
 
+/**
+ * @brief Libera toda a memória da fila e seus nós.
+ *
+ * @param fila Endereço do ponteiro da fila.
+ *
+ * @warning Após esta chamada, *fila será NULL.
+ */
 void fila_apagar(FILA **fila)
 {
     if (fila == NULL || *fila == NULL) return;
 
-    // Percorre todas as prioridades limpando os nós
     for (int i = 0; i < NUM_PRIORIDADES; i++)
     {
         NO *atual = (*fila)->inicio[i];
@@ -187,9 +224,12 @@ void fila_apagar(FILA **fila)
     *fila = NULL;
 }
 
-
 /**
- * @brief Imprime a fila completa, ordenada por prioridade.
+ * @brief Imprime todos os pacientes da fila em formato organizado.
+ *
+ * @param fila Ponteiro para a fila.
+ *
+ * @note Os pacientes são exibidos por prioridade e na ordem de chegada.
  */
 void fila_imprimir(FILA *fila)
 {
@@ -220,5 +260,6 @@ void fila_imprimir(FILA *fila)
             }
         }
     }
+
     printf("=======================================\n");
 }

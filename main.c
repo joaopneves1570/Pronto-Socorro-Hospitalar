@@ -1,3 +1,17 @@
+/**
+ * @file IO.c
+ * @brief Implementação da interface textual do sistema de Pronto Socorro.
+ *
+ * Este módulo contém funções de entrada/saída, menus, validações de CPF,
+ * e o loop principal da aplicação (função main).
+ *
+ * Ele interage com os TADs:
+ * - LISTA  (cadastro de pacientes)
+ * - FILA   (fila de prioridade)
+ * - HISTORICO (registro de atendimentos)
+ * - PACIENTE (estrutura principal do paciente)
+ */
+
 #include "include/IO.h"
 #include "include/fila.h"
 #include "include/historico.h"
@@ -25,8 +39,14 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_STYLE_BOLD    "\x1b[1m"
 
+/**
+ * @brief Limpa o terminal de forma compatível com Windows e Linux.
+ */
 void limpar_tela() { system(LIMPAR_TELA); }
 
+/**
+ * @brief Pausa a execução até que o usuário aperte Enter.
+ */
 void pausar_para_continuar()
 {
     printf("\n" ANSI_STYLE_BOLD "Pressione Enter para continuar..." ANSI_COLOR_RESET);
@@ -35,13 +55,22 @@ void pausar_para_continuar()
     getchar();
 }
 
+/**
+ * @brief Imprime um cabeçalho destacado com o título da seção atual.
+ * @param titulo Texto exibido no cabeçalho.
+ */
 void imprimir_cabecalho(const char *titulo)
 {
     limpar_tela();
     printf(ANSI_STYLE_BOLD ANSI_COLOR_CYAN "--- %s ---\n\n" ANSI_COLOR_RESET, titulo);
 }
 
-// Menu conforme especificação do Projeto + Extras úteis
+/**
+ * @brief Exibe o menu principal do sistema.
+ *
+ * Inclui as opções previstas no projeto + uma opção extra
+ * para manipulação manual do histórico.
+ */
 void exibir_menu_principal()
 {
     limpar_tela();
@@ -58,6 +87,9 @@ void exibir_menu_principal()
     printf("\nEscolha uma opção: ");
 }
 
+/**
+ * @brief Enumeração das opções do menu principal.
+ */
 typedef enum
 {
     REGISTRAR_ENTRADA = 1,
@@ -70,6 +102,10 @@ typedef enum
     EXTRA_HISTORICO = 8
 } Opcao;
 
+/**
+ * @brief Lê a escolha do usuário no menu principal.
+ * @return Uma opção válida da enumeração Opcao.
+ */
 Opcao escolher_opcao()
 {
     int opcao;
@@ -81,8 +117,10 @@ Opcao escolher_opcao()
     return (Opcao)opcao;
 }
 
-// --- Funções Auxiliares de CPF ---
-
+/**
+ * @brief Remove caracteres não numéricos do CPF.
+ * @param cpf String contendo o CPF digitado.
+ */
 void formatar_cpf(char cpf[])
 {
     int tamanho = 0;
@@ -95,6 +133,11 @@ void formatar_cpf(char cpf[])
     cpf[tamanho] = '\0';
 }
 
+/**
+ * @brief Verifica se um CPF tem comprimento válido (11 dígitos).
+ * @param cpf String contendo o CPF.
+ * @return true se válido, false caso contrário.
+ */
 bool eh_cpf_valido(char cpf[])
 {
     formatar_cpf(cpf);
@@ -105,6 +148,10 @@ bool eh_cpf_valido(char cpf[])
     return true; 
 }
 
+/**
+ * @brief Lê um CPF do usuário e valida o formato.
+ * @return String alocada dinamicamente com o CPF, ou NULL se inválido.
+ */
 char *cpf_ler()
 {
     char *cpf = calloc(16, sizeof(char));
@@ -121,6 +168,10 @@ char *cpf_ler()
     return cpf;
 }
 
+/**
+ * @brief Exibe o menu de classificação de risco e lê a prioridade.
+ * @return Índice da prioridade (0 a 4).
+ */
 int ler_prioridade_interface()
 {
     int p;
@@ -138,11 +189,20 @@ int ler_prioridade_interface()
         if (p < 1 || p > 5) printf("Opção inválida. Digite entre 1 e 5: ");
     } while (p < 1 || p > 5);
 
-    return p - 1; // Retorna índice 0-4
+    return p - 1;
 }
 
-// --- Função Main Principal ---
-
+/**
+ * @brief Função principal do sistema de pronto-socorro.
+ *
+ * Controla:
+ * - Cadastro e remoção de pacientes
+ * - Inserção e remoção da fila
+ * - Registros em histórico
+ * - Persistência dos dados (LOAD/SAVE)
+ *
+ * @return 0 ao finalizar a execução.
+ */
 int main()
 {
     // Inicialização das estruturas
@@ -170,19 +230,22 @@ int main()
 
         switch (opcao)
         {
+        /**
+         * @brief Registrar entrada e triagem de um paciente.
+         */
         case REGISTRAR_ENTRADA:
         {
             imprimir_cabecalho("Registrar Entrada / Triagem");
             char *cpf = cpf_ler();
             if (cpf) {
                 PACIENTE *pac = lista_buscar(lista, cpf);
-                
-                // 1. Lógica de Cadastro (Se não existir)
+
+                // Cadastro caso não exista
                 if (pac == NULL) {
                     char nome[256];
                     printf("Paciente não cadastrado. Digite o Nome Completo: ");
                     fgets(nome, 256, stdin);
-                    nome[strcspn(nome, "\n")] = '\0'; // Remove o \n
+                    nome[strcspn(nome, "\n")] = '\0';
 
                     pac = paciente_criar(nome, cpf);
                     lista_inserir(lista, pac);
@@ -191,14 +254,11 @@ int main()
                     printf(ANSI_COLOR_CYAN "[ENCONTRADO] Paciente já possui cadastro: %s\n" ANSI_COLOR_RESET, paciente_obter_nome(pac));
                 }
 
-                // 2. Verifica se já está na fila usando a função do TAD Paciente
+                // Verifica duplicidade na fila
                 if (paciente_esta_na_fila(pac)) {
                      printf(ANSI_COLOR_YELLOW "[ALERTA] Paciente já está na fila de espera.\n" ANSI_COLOR_RESET);
                 } else {
-                    // 3. Pergunta a prioridade pro usuário
                     int prioridade = ler_prioridade_interface();
-                    
-                    // 4. Manda inserir passando a prioridade
                     if (fila_inserir(fila, pac, prioridade)) {
                         printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente encaminhado para fila.\n" ANSI_COLOR_RESET);
                     } else {
@@ -211,6 +271,9 @@ int main()
             break;
         }
 
+        /**
+         * @brief Remove um paciente definitivamente do sistema.
+         */
         case REMOVER_PACIENTE:
         {
             imprimir_cabecalho("Remover Paciente do Sistema");
@@ -219,10 +282,10 @@ int main()
                 PACIENTE *pac = lista_buscar(lista, cpf);
                 if (pac) {
                     if (paciente_esta_na_fila(pac)) {
-                        printf(ANSI_COLOR_YELLOW "[ALERTA] Paciente está na fila de espera! Dê alta ou remova da fila antes de apagar o registro.\n" ANSI_COLOR_RESET);
+                        printf(ANSI_COLOR_YELLOW "[ALERTA] Paciente está na fila! Não é seguro remover.\n" ANSI_COLOR_RESET);
                     } else {
                         lista_remover(lista, pac);
-                        printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente removido dos registros do hospital.\n" ANSI_COLOR_RESET);
+                        printf(ANSI_COLOR_GREEN "[SUCESSO] Paciente removido.\n" ANSI_COLOR_RESET);
                     }
                 } else {
                     printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
@@ -232,6 +295,9 @@ int main()
             break;
         }
 
+        /**
+         * @brief Exibe a lista completa de pacientes cadastrados.
+         */
         case LISTAR_PACIENTES:
         {
             imprimir_cabecalho("Lista Geral de Pacientes");
@@ -239,6 +305,9 @@ int main()
             break;
         }
 
+        /**
+         * @brief Busca um paciente pelo CPF e exibe seus dados.
+         */
         case BUSCAR_PACIENTE:
         {
             imprimir_cabecalho("Buscar Paciente");
@@ -256,9 +325,9 @@ int main()
 
                     printf("\nDeseja visualizar o histórico médico? (s/n): ");
                     char resp = getchar();
-                    if (resp == 's' || resp == 'S') {
-                         historico_imprimir(paciente_obter_historico(pac));
-                    }
+                    if (resp == 's' || resp == 'S')
+                        historico_imprimir(paciente_obter_historico(pac));
+
                 } else {
                     printf(ANSI_COLOR_RED "[ERRO] Paciente não encontrado.\n" ANSI_COLOR_RESET);
                 }
@@ -267,6 +336,9 @@ int main()
             break;
         }
 
+        /**
+         * @brief Imprime a fila de espera com prioridades.
+         */
         case MOSTRAR_FILA:
         {
             imprimir_cabecalho("Fila de Espera (Prioridades)");
@@ -274,6 +346,9 @@ int main()
             break;
         }
 
+        /**
+         * @brief Dá alta ao próximo paciente da fila.
+         */
         case DAR_ALTA:
         {
             imprimir_cabecalho("Atendimento / Alta");
@@ -287,7 +362,7 @@ int main()
                     printf(ANSI_STYLE_BOLD "ATENDENDO PACIENTE: %s\n" ANSI_COLOR_RESET, paciente_obter_nome(pac));
                     printf("CPF: %s\n\n", paciente_obter_cpf(pac));
 
-                    printf("Deseja registrar o procedimento realizado antes da alta? (s/n): ");
+                    printf("Deseja registrar o procedimento? (s/n): ");
                     char op;
                     scanf(" %c", &op);
                     getchar(); 
@@ -299,15 +374,18 @@ int main()
                         proc[strcspn(proc, "\n")] = '\0';
                         
                         historico_inserir(paciente_obter_historico(pac), proc);
-                        printf(ANSI_COLOR_GREEN "[REGISTRADO] Procedimento salvo no histórico.\n" ANSI_COLOR_RESET);
+                        printf(ANSI_COLOR_GREEN "[REGISTRADO] Procedimento salvo.\n" ANSI_COLOR_RESET);
                     }
 
-                    printf(ANSI_COLOR_GREEN "\n[ALTA] Paciente liberado da emergência com sucesso.\n" ANSI_COLOR_RESET);
+                    printf(ANSI_COLOR_GREEN "\n[ALTA] Paciente liberado com sucesso.\n" ANSI_COLOR_RESET);
                 }
             }
             break;
         }
 
+        /**
+         * @brief Manipulação manual do histórico médico.
+         */
         case EXTRA_HISTORICO:
         {
             imprimir_cabecalho("Gestão Manual de Histórico");
@@ -334,7 +412,8 @@ int main()
                         proc[strcspn(proc, "\n")] = '\0';
                         historico_inserir(hist, proc);
                         printf(ANSI_COLOR_GREEN "Adicionado.\n" ANSI_COLOR_RESET);
-                    } else if (h_op == 2) {
+                    } 
+                    else if (h_op == 2) {
                         char *removido = historico_remover(hist);
                         if (removido) {
                             printf(ANSI_COLOR_YELLOW "Desfeito: %s\n" ANSI_COLOR_RESET, removido);
@@ -342,10 +421,12 @@ int main()
                         } else {
                             printf(ANSI_COLOR_RED "Histórico vazio.\n" ANSI_COLOR_RESET);
                         }
-                    } else if (h_op == 3) {
+                    } 
+                    else if (h_op == 3) {
                         printf("\n--- Visualização de Histórico ---\n");
                         historico_imprimir(hist);
-                    } else {
+                    } 
+                    else {
                         printf(ANSI_COLOR_RED "Opção inválida.\n" ANSI_COLOR_RESET);
                     }
                 } else {
