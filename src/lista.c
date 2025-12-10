@@ -87,6 +87,7 @@ int lista_altura_no(NO* raiz){
  * @return NO* A nova raiz da subárvore após a rotação.
  */
 NO* rodar_direita(NO* a){
+    
     NO* b = a->esq;
     a->esq = b->dir;
     b->dir = a;
@@ -150,6 +151,7 @@ NO* lista_inserir_no(NO* raiz, PACIENTE* p){
     if (raiz == NULL)
         raiz = lista_cria_no(p);
     
+    // CORREÇÃO: Usando strcmp em vez de atol
     int cmp = strcmp(paciente_obter_cpf(p), paciente_obter_cpf(raiz->pac));
 
     if (cmp < 0){
@@ -235,6 +237,7 @@ NO* lista_remover_no(NO* raiz, char* chave, PACIENTE** pac){
     
     if (raiz == NULL) return NULL;
 
+    // CORREÇÃO: Usando strcmp
     int cmp = strcmp(chave, paciente_obter_cpf(raiz->pac));
 
     if (cmp == 0){ // Encontrou
@@ -309,10 +312,14 @@ PACIENTE* lista_remover_ultimo(LISTA* l){
         PACIENTE* paciente_recuperado = NULL;
         NO* atual = l->raiz;
         
+        // CORREÇÃO: O loop deve verificar se 'atual' tem direita
         while (atual->dir != NULL){
             atual = atual->dir;
         }
-    
+        
+        // CORREÇÃO: Captura o CPF antes de remover
+        // IMPORTANTE: Devemos chamar remover_no a partir da RAIZ (l->raiz) para rebalancear a árvore inteira,
+        // e não a partir de 'atual' (que quebraria a árvore).
         char cpf_ultimo[16]; // Buffer seguro para guardar o CPF
         strcpy(cpf_ultimo, paciente_obter_cpf(atual->pac));
 
@@ -359,6 +366,7 @@ NO* lista_buscar_no(NO* raiz, char* cpf, PACIENTE** p){
     if (raiz == NULL)
         return NULL;
     
+    // CORREÇÃO: strcmp
     int cmp = strcmp(cpf, paciente_obter_cpf(raiz->pac));
     
     if (cmp == 0){
@@ -385,4 +393,87 @@ PACIENTE* lista_buscar(LISTA* l, char* cpf){
         return paciente_buscado;
     }
     return NULL;
+}
+
+// --- Impressão e Limpeza ---
+
+/**
+ * @brief Percorre a árvore em ordem (In-Order) e executa uma ação.
+ * @note Resulta nos dados processados em ordem crescente de CPF.
+ * @param raiz Raiz da subárvore.
+ * @param acao Ponteiro de função a ser executada em cada nó.
+ * @param contexto Parâmetro extra opcional para a função de callback.
+ */
+void lista_em_ordem(NO* raiz, AcaoPaciente acao, void* contexto){
+    if (raiz != NULL){
+        lista_em_ordem(raiz->esq, acao, contexto);
+        acao(raiz->pac, contexto);
+        lista_em_ordem(raiz->dir, acao, contexto);
+    }
+}
+
+/**
+ * @brief Percorre a árvore em pré-ordem (Pre-Order).
+ * @param raiz Raiz da subárvore.
+ * @param acao Ponteiro de função a ser executada em cada nó.
+ * @param contexto Parâmetro extra opcional.
+ */
+void lista_pre_ordem(NO* raiz, AcaoPaciente acao, void* contexto){
+    if (raiz != NULL){
+        acao(raiz->pac, contexto); 
+        lista_pre_ordem(raiz->esq, acao, contexto); 
+        lista_pre_ordem(raiz->dir, acao, contexto);
+    }
+}
+
+/**
+ * @brief Função de callback auxiliar para imprimir os dados de um paciente.
+ * @param p O paciente atual.
+ * @param contexto Não utilizado neste caso (NULL).
+ */
+void acao_imprimir_lista(PACIENTE* p, void* contexto){
+    char* estado;
+    if (paciente_esta_na_fila(p))
+        estado = "NA FILA DE ATENDIMENTO";
+    else
+        estado = "FORA DA FILA DE ATENDIMENTO";
+    
+    printf("NOME: %s\nCPF: %s\nESTADO: %s\n\n", paciente_obter_nome(p), paciente_obter_cpf(p), estado);  
+}
+
+/**
+ * @brief Exibe todos os pacientes da lista no terminal em ordem de CPF.
+ * @param l Ponteiro para a lista.
+ */
+void lista_mostrar(LISTA* l){
+    if (l != NULL){
+        printf("Lista de Pacientes (em ordem crescente de CPF):\n");
+        lista_em_ordem(l->raiz, acao_imprimir_lista, NULL);    
+    }
+}
+
+/**
+ * @brief Função auxiliar para apagar os nós da árvore (Pós-ordem).
+ * @param raiz Raiz da subárvore a ser apagada.
+ */
+void lista_apagar_aux(NO* raiz){
+    if (raiz != NULL){
+        lista_apagar_aux(raiz->esq);
+        lista_apagar_aux(raiz->dir);
+        // Nota: O TAD Lista é "dono" do paciente? Se sim, apague.
+        paciente_apagar(&raiz->pac); 
+        free(raiz);
+    }
+}
+
+/**
+ * @brief Apaga a lista inteira, liberando a memória dos nós e dos pacientes.
+ * @param l Endereço do ponteiro da lista (LISTA**).
+ */
+void lista_apagar(LISTA** l){
+    if (*l != NULL){
+        lista_apagar_aux((*l)->raiz);
+        free(*l);
+        *l = NULL;
+    }
 }

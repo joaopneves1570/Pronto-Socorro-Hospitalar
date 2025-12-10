@@ -2,5 +2,6 @@
   "files.associations": {
     "stdlib.h": "c",
     "paciente.h": "c"
-  }
+  },
+  "explorer.sortOrder": "modified"
 }
