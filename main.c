@@ -1,4 +1,3 @@
-#include "include/IO.h"
 #include "include/fila.h"
 #include "include/lista.h"
 #include "include/paciente.h"
@@ -264,7 +263,7 @@ PACIENTE *paciente_ler(LISTA *lista)
 
 int main()
 {
-  LISTA *lista = lista_criar();
+  LISTA *lista = lista_carregar("data/lista.bin");
 
   FILA* filas[5];
 
