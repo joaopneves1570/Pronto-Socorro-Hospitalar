@@ -4,8 +4,6 @@
  * @details Esta estrutura funciona como uma Pilha (Stack) de capacidade fixa (10 itens).
  * Armazena strings de até 100 caracteres. Quando cheia, não aceita novos itens até que
  * algum seja removido.
- * @author Seu Nome (Gerado por IA)
- * @date 2023
  */
 
 #include "../include/historico.h"
@@ -134,7 +132,7 @@ bool historico_consultar(HISTORICO* hist, char* texto){
  */
 void historico_imprimir(HISTORICO* hist){
     if (hist != NULL){
-        for (int i = 0; i < hist->tamanho; i++){
+        for (int i = hist->tamanho; i >= 0; i--){
             printf("%s\n", hist->hist[i]);
         }
     }

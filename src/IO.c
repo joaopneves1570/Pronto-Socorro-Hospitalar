@@ -15,9 +15,7 @@
 #include "../include/paciente.h"
 #include "../include/lista.h"
 #include "../include/fila.h" 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 /**
  * @brief Salva a LISTA e a FILA em disco, em formato binário.

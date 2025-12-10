@@ -1,8 +1,5 @@
 #include "../include/fila.h"
 #include "../include/paciente.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define TAM_MAX 50 ///< Capacidade máxima total da fila
 #define NUM_PRIORIDADES 5 ///< Quantidade de níveis de prioridade (1 a 5)

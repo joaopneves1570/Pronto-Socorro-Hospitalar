@@ -4,7 +4,8 @@
 /**
  * @brief Estrutura que representa um paciente.
  * * Armazena os dados principais de um paciente, incluindo seu nome, CPF (usado como
- * chave única) e um ponteiro para seu histórico médico de procedimentos.
+ * chave única) e um ponteiro para seu histórico médico de procedimentos, além de um bool para checar se o 
+ * paciente está ou não na fila de espera.
  */
 struct paciente_
 {
@@ -253,6 +254,10 @@ void paciente_imprimir(PACIENTE *paciente)
         printf("%s\n", paciente_obter_nome(paciente));
 }
 
+/**
+ * @brief Retorna se o paciente esta na fila de espera
+ * * @param paciente Ponteiro para a estrutura PACIENTE a ser impressa.
+ */
 bool paciente_esta_na_fila(PACIENTE* paciente){
   if (paciente != NULL){
     return paciente->fila == 1;
@@ -261,12 +266,20 @@ bool paciente_esta_na_fila(PACIENTE* paciente){
   return false;
 }
 
+/**
+ * @brief Coloca o estado do paciente como na fila de espera
+ * * @param paciente Ponteiro para a estrutura PACIENTE a ser impressa.
+ */
 void paciente_ir_para_fila(PACIENTE* paciente){
   if (paciente != NULL){
     paciente->fila = 1;
   }
 }
 
+/**
+ * @brief Coloca o estado do paciente como fora da fila de espera
+ * * @param paciente Ponteiro para a estrutura PACIENTE a ser impressa.
+ */
 void paciente_sair_da_fila(PACIENTE* paciente){
   if (paciente != NULL){
     paciente->fila = 0;

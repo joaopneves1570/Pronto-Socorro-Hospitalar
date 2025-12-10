@@ -4,14 +4,9 @@
  * @details Embora a interface sugira uma "Lista", a implementação interna utiliza uma 
  * Árvore AVL (Árvore Binária de Busca Balanceada) ordenadada pelo CPF.
  * Isso garante complexidade O(log n) para busca, inserção e remoção.
- * @author Seu Nome (Gerado por IA)
- * @date 2023
  */
 
 #include "../include/lista.h"
-#include <string.h> // Necessário para strcmp
-#include <stdio.h>
-#include <stdlib.h>
 
 /**
  * @struct no_
@@ -151,7 +146,7 @@ NO* lista_inserir_no(NO* raiz, PACIENTE* p){
     if (raiz == NULL)
         raiz = lista_cria_no(p);
     
-    // CORREÇÃO: Usando strcmp em vez de atol
+
     int cmp = strcmp(paciente_obter_cpf(p), paciente_obter_cpf(raiz->pac));
 
     if (cmp < 0){
@@ -237,10 +232,9 @@ NO* lista_remover_no(NO* raiz, char* chave, PACIENTE** pac){
     
     if (raiz == NULL) return NULL;
 
-    // CORREÇÃO: Usando strcmp
     int cmp = strcmp(chave, paciente_obter_cpf(raiz->pac));
 
-    if (cmp == 0){ // Encontrou
+    if (cmp == 0){
         if (raiz->esq == NULL || raiz->dir == NULL){
             p = raiz;
 
@@ -312,14 +306,10 @@ PACIENTE* lista_remover_ultimo(LISTA* l){
         PACIENTE* paciente_recuperado = NULL;
         NO* atual = l->raiz;
         
-        // CORREÇÃO: O loop deve verificar se 'atual' tem direita
         while (atual->dir != NULL){
             atual = atual->dir;
         }
         
-        // CORREÇÃO: Captura o CPF antes de remover
-        // IMPORTANTE: Devemos chamar remover_no a partir da RAIZ (l->raiz) para rebalancear a árvore inteira,
-        // e não a partir de 'atual' (que quebraria a árvore).
         char cpf_ultimo[16]; // Buffer seguro para guardar o CPF
         strcpy(cpf_ultimo, paciente_obter_cpf(atual->pac));
 
@@ -352,7 +342,16 @@ bool lista_vazia(LISTA* l){
  * @return false Sempre retorna falso.
  */
 bool lista_cheia(LISTA* l){
-    return false; // Implementação dinâmica, nunca cheia (a menos que acabe RAM)
+    if (l != NULL){
+        NO* novo = (NO*)malloc(sizeof(NO));
+        if (novo != NULL){
+            free(novo);
+            return false;
+        }
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -366,7 +365,6 @@ NO* lista_buscar_no(NO* raiz, char* cpf, PACIENTE** p){
     if (raiz == NULL)
         return NULL;
     
-    // CORREÇÃO: strcmp
     int cmp = strcmp(cpf, paciente_obter_cpf(raiz->pac));
     
     if (cmp == 0){
@@ -460,7 +458,6 @@ void lista_apagar_aux(NO* raiz){
     if (raiz != NULL){
         lista_apagar_aux(raiz->esq);
         lista_apagar_aux(raiz->dir);
-        // Nota: O TAD Lista é "dono" do paciente? Se sim, apague.
         paciente_apagar(&raiz->pac); 
         free(raiz);
     }

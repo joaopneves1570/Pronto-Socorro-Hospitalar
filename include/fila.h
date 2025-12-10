@@ -2,6 +2,9 @@
 #ifndef FILA_H
 	#define FILA_H
   	#include "paciente.h"
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
 
 	typedef struct fila_ FILA;
 
